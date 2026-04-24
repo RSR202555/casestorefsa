@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Essência Feminina</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <!-- Admin Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <span class="logo-icon">✨</span>
+                <div class="logo-text">
+                    <h3>Essência Feminina</h3>
+                    <span>Painel Administrativo</span>
+                </div>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <span class="menu-label">MENU</span>
+
+            <nav class="admin-nav">
+                <a href="#" class="admin-nav-item active">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="#" class="admin-nav-item">
+                    <span class="nav-icon">📦</span>
+                    Produtos
+                </a>
+                <a href="#" class="admin-nav-item">
+                    <span class="nav-icon">🛒</span>
+                    Pedidos
+                    <span class="badge">5</span>
+                </a>
+                <a href="#" class="admin-nav-item">
+                    <span class="nav-icon">👥</span>
+                    Clientes
+                </a>
+                <a href="#" class="admin-nav-item">
+                    <span class="nav-icon">🏷️</span>
+                    Categorias
+                </a>
+                <a href="#" class="admin-nav-item">
+                    <span class="nav-icon">📈</span>
+                    Relatórios
+                </a>
+                <a href="#" class="admin-nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    Configurações
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Admin Main Content -->
+        <main class="admin-main">
+            <!-- Top Bar -->
+            <div class="admin-topbar">
+                <h1>Dashboard</h1>
+                <div class="topbar-actions">
+                    <div class="search-bar">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" placeholder="Buscar...">
+                    </div>
+                    <button class="notification-btn">🔔</button>
+                    <div class="admin-avatar">A</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="admin-content">
+                <!-- Stats Cards -->
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card">
+                        <div class="stat-icon revenue">💰</div>
+                        <div class="stat-info">
+                            <span class="stat-value">R$ 24.890</span>
+                            <span class="stat-label">Faturamento Mensal</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="stat-icon orders">🛍️</div>
+                        <div class="stat-info">
+                            <span class="stat-value">156</span>
+                            <span class="stat-label">Pedidos no Mês</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="stat-icon customers">👥</div>
+                        <div class="stat-info">
+                            <span class="stat-value">1.247</span>
+                            <span class="stat-label">Clientes Ativos</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="stat-icon products">📦</div>
+                        <div class="stat-info">
+                            <span class="stat-value">89</span>
+                            <span class="stat-label">Produtos Cadastrados</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders Table -->
+                <div class="admin-orders-card">
+                    <div class="card-header">
+                        <h2>Pedidos Recentes</h2>
+                        <button class="add-btn">
+                            <span class="icon">➕</span>
+                            Novo Produto
+                        </button>
+                    </div>
+
+                    <div class="orders-table">
+                        <div class="table-header">
+                            <span>#</span>
+                            <span>Cliente</span>
+                            <span>Produto</span>
+                            <span>Valor</span>
+                            <span>Status</span>
+                            <span>Ações</span>
+                        </div>
+
+                        <div class="table-row">
+                            <span class="order-id">#2847</span>
+                            <span class="customer-name">Maria Silva</span>
+                            <span class="product-name">Flower Bomb 100ml</span>
+                            <span class="order-value">R$ 489,90</span>
+                            <span class="status-badge pending">Pendente</span>
+                            <div class="actions">
+                                <button class="action-btn">👁️</button>
+                                <button class="action-btn">✏️</button>
+                            </div>
+                        </div>
+
+                        <div class="table-row">
+                            <span class="order-id">#2846</span>
+                            <span class="customer-name">Ana Costa</span>
+                            <span class="product-name">J'adore Dior 50ml</span>
+                            <span class="order-value">R$ 699,90</span>
+                            <span class="status-badge delivered">Entregue</span>
+                            <div class="actions">
+                                <button class="action-btn">👁️</button>
+                                <button class="action-btn">✏️</button>
+                            </div>
+                        </div>
+
+                        <div class="table-row">
+                            <span class="order-id">#2845</span>
+                            <span class="customer-name">Juliana Santos</span>
+                            <span class="product-name">La Vie Est Belle 75ml</span>
+                            <span class="order-value">R$ 549,90</span>
+                            <span class="status-badge shipping">Em Trânsito</span>
+                            <div class="actions">
+                                <button class="action-btn">👁️</button>
+                                <button class="action-btn">✏️</button>
+                            </div>
+                        </div>
+
+                        <div class="table-row">
+                            <span class="order-id">#2844</span>
+                            <span class="customer-name">Carla Mendes</span>
+                            <span class="product-name">Good Girl 80ml</span>
+                            <span class="order-value">R$ 599,90</span>
+                            <span class="status-badge delivered">Entregue</span>
+                            <div class="actions">
+                                <button class="action-btn">👁️</button>
+                                <button class="action-btn">✏️</button>
+                            </div>
+                        </div>
+
+                        <div class="table-row">
+                            <span class="order-id">#2843</span>
+                            <span class="customer-name">Fernanda Lima</span>
+                            <span class="product-name">Coco Mademoiselle 50ml</span>
+                            <span class="order-value">R$ 789,90</span>
+                            <span class="status-badge cancelled">Cancelado</span>
+                            <div class="actions">
+                                <button class="action-btn">👁️</button>
+                                <button class="action-btn">✏️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho - Essência Feminina</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="logo">Essência Feminina</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="produtos.html">Produtos</a>
+            <a href="#sobre">Sobre</a>
+            <a href="#contato">Contato</a>
+        </div>
+        <div class="right-actions">
+            <a href="carrinho.html" class="cart-icon active">🛒</a>
+            <button class="login-btn">Entrar</button>
+        </div>
+    </nav>
+
+    <!-- Cart Section -->
+    <section class="cart-section">
+        <div class="container">
+            <div class="cart-header">
+                <h1>Meu Carrinho</h1>
+                <span class="item-count">3 itens</span>
+            </div>
+
+            <div class="cart-layout">
+                <!-- Cart Items -->
+                <div class="cart-items">
+                    <!-- Cart Header -->
+                    <div class="cart-table-header">
+                        <span class="header-product">Produto</span>
+                        <span class="header-price">Preço</span>
+                        <span class="header-qty">Qtd</span>
+                        <span class="header-total">Total</span>
+                    </div>
+
+                    <!-- Cart Item 1 -->
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            <img src="https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=80&h=80&fit=crop" alt="Flower Bomb">
+                        </div>
+                        <div class="cart-item-info">
+                            <h3>Flower Bomb</h3>
+                            <p>Viktor & Rolf • 100ml</p>
+                        </div>
+                        <div class="cart-item-price">R$ 489,90</div>
+                        <div class="cart-item-qty">
+                            <button class="qty-btn minus">−</button>
+                            <span class="qty-value">1</span>
+                            <button class="qty-btn plus">+</button>
+                        </div>
+                        <div class="cart-item-total">R$ 489,90</div>
+                        <button class="remove-item">🗑️</button>
+                    </div>
+
+                    <!-- Cart Item 2 -->
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            <img src="https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?w=80&h=80&fit=crop" alt="J'adore Dior">
+                        </div>
+                        <div class="cart-item-info">
+                            <h3>J'adore Dior</h3>
+                            <p>Dior • 50ml</p>
+                        </div>
+                        <div class="cart-item-price">R$ 699,90</div>
+                        <div class="cart-item-qty">
+                            <button class="qty-btn minus">−</button>
+                            <span class="qty-value">2</span>
+                            <button class="qty-btn plus">+</button>
+                        </div>
+                        <div class="cart-item-total">R$ 1.399,80</div>
+                        <button class="remove-item">🗑️</button>
+                    </div>
+
+                    <!-- Cart Item 3 -->
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            <img src="https://images.unsplash.com/photo-1541643600914-78b084683601?w=80&h=80&fit=crop" alt="La Vie Est Belle">
+                        </div>
+                        <div class="cart-item-info">
+                            <h3>La Vie Est Belle</h3>
+                            <p>Lancôme • 75ml</p>
+                        </div>
+                        <div class="cart-item-price">R$ 549,90</div>
+                        <div class="cart-item-qty">
+                            <button class="qty-btn minus">−</button>
+                            <span class="qty-value">1</span>
+                            <button class="qty-btn plus">+</button>
+                        </div>
+                        <div class="cart-item-total">R$ 549,90</div>
+                        <button class="remove-item">🗑️</button>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h2>Resumo do Pedido</h2>
+                    
+                    <div class="summary-lines">
+                        <div class="summary-line">
+                            <span>Subtotal (4 itens)</span>
+                            <span>R$ 2.439,60</span>
+                        </div>
+                        <div class="summary-line">
+                            <span>Frete</span>
+                            <span class="free-shipping">Grátis</span>
+                        </div>
+                        <div class="summary-line discount">
+                            <span>Desconto</span>
+                            <span>- R$ 120,00</span>
+                        </div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span class="total-price">R$ 2.319,60</span>
+                    </div>
+
+                    <!-- Coupon -->
+                    <div class="coupon-section">
+                        <input type="text" placeholder="Cupom de desconto" class="coupon-input">
+                        <button class="coupon-btn">Aplicar</button>
+                    </div>
+
+                    <!-- Checkout Button -->
+                    <button class="checkout-btn">
+                        <span class="btn-icon">🔒</span>
+                        Finalizar Compra
+                    </button>
+
+                    <!-- Security Info -->
+                    <div class="security-info">
+                        <div class="security-item">
+                            <span class="icon">✓</span>
+                            <span>Compra Segura</span>
+                        </div>
+                        <div class="security-item">
+                            <span class="icon">🚚</span>
+                            <span>Frete Grátis</span>
+                        </div>
+                        <div class="security-item">
+                            <span class="icon">↩️</span>
+                            <span>Troca Fácil</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3 class="logo">Essência Feminina</h3>
+                    <p class="description">Fragrâncias exclusivas que revelam sua essência. Perfumes importados com qualidade e autenticidade garantida.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div>
+                        <h4>Navegação</h4>
+                        <a href="index.html">Home</a>
+                        <a href="produtos.html">Produtos</a>
+                        <a href="#sobre">Sobre Nós</a>
+                        <a href="#contato">Contato</a>
+                    </div>
+                    <div>
+                        <h4>Categorias</h4>
+                        <a href="#">Feminino</a>
+                        <a href="#">Importados</a>
+                        <a href="#">Promoções</a>
+                        <a href="#">Lançamentos</a>
+                    </div>
+                </div>
+                
+                <div class="footer-social">
+                    <a href="#">📷</a>
+                    <a href="#">📘</a>
+                    <a href="#">🐦</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © 2026 Essência Feminina. Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
