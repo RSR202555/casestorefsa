@@ -1609,12 +1609,12 @@ export default function AdminPage() {
                             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
                               Preview da imagem
                             </p>
-                            <div className="overflow-hidden rounded-[20px] bg-white">
+                            <div className="flex min-h-[18rem] items-center justify-center overflow-hidden rounded-[20px] bg-white p-4">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={productImagePreview}
                                 alt="Preview do produto"
-                                className="h-56 w-full object-cover"
+                                className="max-h-[26rem] w-full object-contain"
                               />
                             </div>
                           </div>
