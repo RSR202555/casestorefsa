@@ -12,7 +12,7 @@ import { CalculateShippingSchema } from '@/validators/shipping';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  const rl = checkRateLimit('public_api', ip, RATE_LIMITS.PUBLIC_API);
+  const rl = await checkRateLimit('public_api', ip, RATE_LIMITS.PUBLIC_API);
   if (!rl.allowed) return Errors.tooManyRequests();
 
   let body: unknown;

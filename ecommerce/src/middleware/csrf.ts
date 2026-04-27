@@ -41,10 +41,25 @@ export function validateCsrf(
 
   const cookieToken = request.cookies.get(CSRF_COOKIE)?.value;
   const headerToken = request.headers.get(CSRF_HEADER);
+  const requestOrigin = request.headers.get('origin');
+  const requestReferer = request.headers.get('referer');
+  const expectedOrigin = request.nextUrl.origin;
+  const sameOrigin =
+    requestOrigin === expectedOrigin ||
+    requestReferer === expectedOrigin ||
+    requestReferer?.startsWith(`${expectedOrigin}/`) === true;
 
   if (!cookieToken || !headerToken) {
+    if (sameOrigin) return null;
+
     return NextResponse.json(
-      { data: null, error: { code: 'CSRF_MISSING', message: 'Token CSRF ausente' } },
+      {
+        data: null,
+        error: {
+          code: 'CSRF_MISSING',
+          message: 'Validação de origem ausente para a requisição',
+        },
+      },
       { status: 403 }
     );
   }
@@ -58,6 +73,8 @@ export function validateCsrf(
     crypto.timingSafeEqual(bufCookie, bufHeader);
 
   if (!valid) {
+    if (sameOrigin) return null;
+
     return NextResponse.json(
       { data: null, error: { code: 'CSRF_INVALID', message: 'Token CSRF inválido' } },
       { status: 403 }

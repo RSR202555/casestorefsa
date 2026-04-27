@@ -7,7 +7,7 @@ import { RATE_LIMITS } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  const rl = checkRateLimit('auth', ip, RATE_LIMITS.AUTH);
+  const rl = await checkRateLimit('auth', ip, RATE_LIMITS.AUTH);
   if (!rl.allowed) return Errors.tooManyRequests();
 
   let body: unknown;

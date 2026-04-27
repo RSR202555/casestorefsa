@@ -19,7 +19,7 @@ import { createServiceClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  const rl = checkRateLimit('checkout', ip, RATE_LIMITS.CHECKOUT);
+  const rl = await checkRateLimit('checkout', ip, RATE_LIMITS.CHECKOUT);
   if (!rl.allowed) return Errors.tooManyRequests();
 
   const auth = await requireAuth(request);

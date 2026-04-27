@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase/server';
 import { ok, Errors } from '@/lib/utils';
 import { RegisterSchema } from '@/validators/auth';
 import { checkRateLimit } from '@/middleware/rate-limit';
@@ -9,7 +9,7 @@ import { getClientIp } from '@/lib/utils';
 export async function POST(request: NextRequest) {
   // Rate limiting
   const ip = getClientIp(request);
-  const rl = checkRateLimit('auth', ip, RATE_LIMITS.AUTH);
+  const rl = await checkRateLimit('auth', ip, RATE_LIMITS.AUTH);
   if (!rl.allowed) return Errors.tooManyRequests();
 
   // Parse e validação
@@ -26,32 +26,48 @@ export async function POST(request: NextRequest) {
   }
 
   const { email, password, full_name, phone, cpf } = parsed.data;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin;
 
-  // Usa service role para criar o usuário sem enviar e-mail de confirmação,
-  // evitando o rate limit de e-mails do Supabase no plano gratuito.
-  const supabase = createServiceClient();
+  // Cadastro público deve exigir comprovação do e-mail antes da ativação.
+  const supabase = createServerClient();
 
-  const { data, error } = await supabase.auth.admin.createUser({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
-    email_confirm: true,
-    user_metadata: { full_name, phone: phone ?? null, cpf: cpf ?? null },
+    options: {
+      emailRedirectTo: `${siteUrl}/auth/callback?next=/conta`,
+      data: {
+        full_name,
+        phone: phone ?? null,
+        cpf: cpf ?? null,
+      },
+    },
   });
 
   if (error) {
+    const normalizedMessage = error.message.toLowerCase();
     if (
-      error.message.toLowerCase().includes('already registered') ||
-      error.message.toLowerCase().includes('already exists') ||
-      error.message.toLowerCase().includes('duplicate')
+      normalizedMessage.includes('already registered') ||
+      normalizedMessage.includes('already exists') ||
+      normalizedMessage.includes('duplicate')
     ) {
-      return Errors.conflict('E-mail já cadastrado');
+      return ok(
+        {
+          message:
+            'Se o e-mail estiver disponível, você receberá um link de confirmação para ativar a conta.',
+        },
+        201
+      );
     }
     console.error('[register]', error.message);
     return Errors.internal('Erro ao criar conta');
   }
 
   return ok(
-    { user_id: data.user?.id, message: 'Conta criada com sucesso! Você já pode entrar.' },
+    {
+      message:
+        'Cadastro recebido. Confira seu e-mail para confirmar a conta antes de entrar.',
+    },
     201
   );
 }

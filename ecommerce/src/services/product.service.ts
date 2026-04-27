@@ -204,6 +204,61 @@ function normalizeImageList(imageUrl: string | undefined): string[] {
   return normalized ? [normalized] : [];
 }
 
+function matchesSignature(
+  bytes: Uint8Array,
+  signature: number[],
+  offset = 0
+): boolean {
+  return signature.every((value, index) => bytes[offset + index] === value);
+}
+
+function detectImageKind(
+  bytes: Uint8Array
+): 'jpg' | 'png' | 'webp' | 'avif' | 'heic' | 'heif' | null {
+  if (bytes.length >= 3 && matchesSignature(bytes, [0xff, 0xd8, 0xff])) {
+    return 'jpg';
+  }
+
+  if (
+    bytes.length >= 8 &&
+    matchesSignature(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+  ) {
+    return 'png';
+  }
+
+  if (
+    bytes.length >= 12 &&
+    matchesSignature(bytes, [0x52, 0x49, 0x46, 0x46]) &&
+    matchesSignature(bytes, [0x57, 0x45, 0x42, 0x50], 8)
+  ) {
+    return 'webp';
+  }
+
+  if (bytes.length >= 12 && matchesSignature(bytes, [0x66, 0x74, 0x79, 0x70], 4)) {
+    const brand = new TextDecoder('ascii').decode(bytes.slice(8, 12)).toLowerCase();
+
+    if (brand === 'avif' || brand === 'avis') return 'avif';
+    if (brand === 'heic' || brand === 'heix' || brand === 'hevc' || brand === 'hevx') {
+      return 'heic';
+    }
+    if (brand === 'mif1' || brand === 'msf1') return 'heif';
+  }
+
+  return null;
+}
+
+function sanitizeBlobFilename(name: string): string {
+  const normalized = name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+
+  return normalized || 'imagem';
+}
+
 function slugifyProductName(value: string, sku?: string): string {
   const base = value
     .normalize('NFD')
@@ -731,13 +786,47 @@ export const ProductService = {
       throw new Error('Imagem deve ter no máximo 5MB');
     }
 
+    if (file.type && !file.type.toLowerCase().startsWith('image/')) {
+      throw new Error('O arquivo enviado não é uma imagem válida');
+    }
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const detectedKind = detectImageKind(bytes);
+    if (!detectedKind) {
+      throw new Error('Não foi possível validar o conteúdo da imagem enviada');
+    }
+
+    const normalizedExt = ext === 'jpeg' ? 'jpg' : ext;
+    const compatibleKinds: Record<string, string[]> = {
+      jpg: ['jpg'],
+      png: ['png'],
+      webp: ['webp'],
+      avif: ['avif'],
+      heic: ['heic'],
+      heif: ['heif'],
+    };
+
+    if (!compatibleKinds[normalizedExt]?.includes(detectedKind)) {
+      throw new Error('A extensão do arquivo não corresponde ao conteúdo real da imagem');
+    }
+
+    const safeBaseName = sanitizeBlobFilename(file.name.replace(/\.[^.]+$/, ''));
+    const contentTypeByKind: Record<string, string> = {
+      jpg: 'image/jpeg',
+      png: 'image/png',
+      webp: 'image/webp',
+      avif: 'image/avif',
+      heic: 'image/heic',
+      heif: 'image/heif',
+    };
+
     const blob = await put(
-      `products/${productId}/${Date.now()}-${file.name.replace(/\s+/g, '-')}`,
+      `products/${productId}/${Date.now()}-${safeBaseName}.${normalizedExt}`,
       file,
       {
         access: 'public',
         addRandomSuffix: true,
-        contentType: file.type || `image/${ext}`,
+        contentType: file.type || contentTypeByKind[normalizedExt] || `image/${normalizedExt}`,
       }
     );
 

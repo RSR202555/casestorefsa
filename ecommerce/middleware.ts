@@ -11,6 +11,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
+import { validateCsrf } from '@/middleware/csrf';
 
 // Rotas que exigem autenticação
 const PROTECTED_ROUTES = [
@@ -36,6 +37,12 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: { headers: request.headers },
   });
+  const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith('/api/')) {
+    const csrfError = validateCsrf(request);
+    if (csrfError) return csrfError;
+  }
 
   // Cria cliente Supabase com acesso aos cookies da requisição
   const supabase = createServerClient(
@@ -64,8 +71,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   // Redireciona usuário autenticado para longe das páginas de auth
   if (user && AUTH_ROUTES.some((r) => pathname.startsWith(r))) {

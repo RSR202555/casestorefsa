@@ -90,7 +90,7 @@ export default function RegisterPage() {
 
       window.setTimeout(() => {
         router.push('/login')
-      }, 1200)
+      }, 2200)
     } catch {
       setError('Nao foi possivel conectar ao servidor')
     } finally {
@@ -144,7 +144,8 @@ export default function RegisterPage() {
               Abrir conta
             </h2>
             <p className="mt-3 text-neutral-600">
-              Use seus dados reais para facilitar checkout, suporte e comunicacao de pedidos.
+              Use seus dados reais para facilitar checkout, suporte e comunicacao de pedidos. Depois do cadastro,
+              voce vai confirmar seu e-mail para ativar a conta com seguranca.
             </p>
 
             <form className="mt-8 space-y-4" onSubmit={handleSubmit}>

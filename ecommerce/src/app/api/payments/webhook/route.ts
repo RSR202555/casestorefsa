@@ -28,7 +28,7 @@ import { MercadoPagoWebhookSchema } from '@/validators/payment';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  const rl = checkRateLimit('webhook', ip, RATE_LIMITS.WEBHOOK);
+  const rl = await checkRateLimit('webhook', ip, RATE_LIMITS.WEBHOOK);
   if (!rl.allowed) {
     return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   }
