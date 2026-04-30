@@ -158,6 +158,64 @@ async function getCustomerEmails(customerIds: string[]): Promise<Map<string, str
   return emailById
 }
 
+async function getCustomerAddresses(customerIds: string[]): Promise<Map<string, AddressRow[]>> {
+  const supabase = createServiceClient()
+  const { data, error } = await supabase
+    .from('addresses')
+    .select(
+      'user_id, label, street, number, complement, neighborhood, city, state, zip_code, is_default, created_at'
+    )
+    .in('user_id', customerIds)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.warn('[CustomerService] listCustomers addresses fallback', error.message)
+    return new Map()
+  }
+
+  const addressesByUser = new Map<string, AddressRow[]>()
+  for (const address of (data ?? []) as AddressRow[]) {
+    const userAddresses = addressesByUser.get(address.user_id) ?? []
+    userAddresses.push(address)
+    addressesByUser.set(address.user_id, userAddresses)
+  }
+
+  return addressesByUser
+}
+
+async function getCustomerOrdersSafe(customerIds: string[]): Promise<Map<string, OrderRow[]>> {
+  try {
+    const orders = await getCustomerOrders(customerIds)
+    const ordersByUser = new Map<string, OrderRow[]>()
+
+    for (const order of orders) {
+      const userOrders = ordersByUser.get(order.user_id) ?? []
+      userOrders.push(order)
+      ordersByUser.set(order.user_id, userOrders)
+    }
+
+    return ordersByUser
+  } catch (error) {
+    console.warn(
+      '[CustomerService] listCustomers orders fallback',
+      error instanceof Error ? error.message : error
+    )
+    return new Map()
+  }
+}
+
+async function getCustomerEmailsSafe(customerIds: string[]): Promise<Map<string, string>> {
+  try {
+    return await getCustomerEmails(customerIds)
+  } catch (error) {
+    console.warn(
+      '[CustomerService] listCustomers auth users fallback',
+      error instanceof Error ? error.message : error
+    )
+    return new Map()
+  }
+}
+
 export const CustomerService = {
   async listCustomers(limit = 100): Promise<AdminCustomerRecord[]> {
     const supabase = createServiceClient()
@@ -178,35 +236,11 @@ export const CustomerService = {
 
     const customerIds = customerProfiles.map((profile) => profile.id)
 
-    const [addressesResult, orders, emailById] = await Promise.all([
-      supabase
-        .from('addresses')
-        .select(
-          'user_id, label, street, number, complement, neighborhood, city, state, zip_code, is_default, created_at'
-        )
-        .in('user_id', customerIds)
-        .order('created_at', { ascending: false }),
-      getCustomerOrders(customerIds),
-      getCustomerEmails(customerIds),
+    const [addressesByUser, ordersByUser, emailById] = await Promise.all([
+      getCustomerAddresses(customerIds),
+      getCustomerOrdersSafe(customerIds),
+      getCustomerEmailsSafe(customerIds),
     ])
-
-    if (addressesResult.error) {
-      throw new Error(`[CustomerService] listCustomers addresses: ${addressesResult.error.message}`)
-    }
-
-    const addressesByUser = new Map<string, AddressRow[]>()
-    for (const address of (addressesResult.data ?? []) as AddressRow[]) {
-      const userAddresses = addressesByUser.get(address.user_id) ?? []
-      userAddresses.push(address)
-      addressesByUser.set(address.user_id, userAddresses)
-    }
-
-    const ordersByUser = new Map<string, OrderRow[]>()
-    for (const order of orders) {
-      const userOrders = ordersByUser.get(order.user_id) ?? []
-      userOrders.push(order)
-      ordersByUser.set(order.user_id, userOrders)
-    }
 
     return customerProfiles.map((profile) => {
       const userOrders = ordersByUser.get(profile.id) ?? []

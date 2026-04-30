@@ -4,7 +4,7 @@ const testimonials = [
   {
     id: 1,
     name: 'Maria Silva',
-    location: 'São Paulo, SP',
+    location: 'Feira de Santana, BA',
     rating: 5,
     text: 'Perfume maravilhoso! Chegou super rápido e bem embalado. A fragrância é idêntica à da loja física. Super recomendo!',
     avatar: 'MS',
@@ -12,7 +12,7 @@ const testimonials = [
   {
     id: 2,
     name: 'Ana Beatriz',
-    location: 'Rio de Janeiro, RJ',
+    location: 'Feira de Santana, BA',
     rating: 5,
     text: 'Melhor loja de perfumes online! Atendimento excelente e os preços são muito competitivos. Já sou cliente fiel há 2 anos.',
     avatar: 'AB',
@@ -20,7 +20,7 @@ const testimonials = [
   {
     id: 3,
     name: 'Juliana Costa',
-    location: 'Belo Horizonte, MG',
+    location: 'Feira de Santana, BA',
     rating: 5,
     text: 'Comprei o J\'adore e veio lacrado, com nota fiscal. Fiquei muito satisfeita com a experiência de compra.',
     avatar: 'JC',
@@ -28,7 +28,7 @@ const testimonials = [
   {
     id: 4,
     name: 'Camila Santos',
-    location: 'Curitiba, PR',
+    location: 'Feira de Santana, BA',
     rating: 5,
     text: 'Esse é o meu perfume favorito! Já é a terceira vez que compro aqui. Sempre chega rápido e com ótimo preço.',
     avatar: 'CS',
@@ -36,7 +36,7 @@ const testimonials = [
   {
     id: 5,
     name: 'Fernanda Lima',
-    location: 'Salvador, BA',
+    location: 'Feira de Santana, BA',
     rating: 4,
     text: 'Primeira compra e já amei! O perfume veio perfeito e a embalagem é linda. Vou comprar novamente com certeza.',
     avatar: 'FL',
@@ -44,7 +44,7 @@ const testimonials = [
   {
     id: 6,
     name: 'Patricia Mendes',
-    location: 'Porto Alegre, RS',
+    location: 'Feira de Santana, BA',
     rating: 5,
     text: 'Atendimento impecável! Tive uma dúvida e o suporte respondeu super rápido. O perfume é maravilhoso.',
     avatar: 'PM',
@@ -111,34 +111,6 @@ export default function Testimonials() {
           ))}
         </div>
 
-        <div className="mt-14 border-t border-neutral-200 pt-12 sm:mt-20 sm:pt-16">
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
-            <div className="text-center">
-              <p className="mb-2 font-display text-3xl font-bold text-primary-500 md:text-5xl">
-                10k+
-              </p>
-              <p className="text-neutral-500">Clientes Satisfeitas</p>
-            </div>
-            <div className="text-center">
-              <p className="mb-2 font-display text-3xl font-bold text-primary-500 md:text-5xl">
-                4.9
-              </p>
-              <p className="text-neutral-500">Avaliação Média</p>
-            </div>
-            <div className="text-center">
-              <p className="mb-2 font-display text-3xl font-bold text-primary-500 md:text-5xl">
-                50+
-              </p>
-              <p className="text-neutral-500">Marcas Premium</p>
-            </div>
-            <div className="text-center">
-              <p className="mb-2 font-display text-3xl font-bold text-primary-500 md:text-5xl">
-                5 anos
-              </p>
-              <p className="text-neutral-500">de Experiência</p>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   )

@@ -32,11 +32,7 @@ export default async function BestSellers() {
 
         <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-6">
           {bestSellers.map((product, index) => (
-            <div
-              key={product.id}
-              className="animate-slide-up"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
+            <div key={product.id}>
               <ProductCard product={product} priority={index < 4} />
             </div>
           ))}

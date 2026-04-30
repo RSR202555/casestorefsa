@@ -12,11 +12,13 @@ type ProductsPageProps = {
         category?: string
         filter?: string
         brand?: string
+        q?: string
       }>
     | {
         category?: string
         filter?: string
         brand?: string
+        q?: string
       }
 }
 
@@ -76,6 +78,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const selectedCategory = normalizeParam(resolvedSearchParams.category)
   const selectedFilter = normalizeParam(resolvedSearchParams.filter)
   const selectedBrand = normalizeParam(resolvedSearchParams.brand)
+  const selectedQuery = normalizeParam(resolvedSearchParams.q)
 
   const [products, dbCategories, categoryProductIds] = await Promise.all([
     getCatalogProducts(),
@@ -90,6 +93,18 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     if (selectedBrand && product.brand.toLowerCase() !== selectedBrand) return false
     if (selectedFilter === 'promo' && !product.originalPrice) return false
     if (selectedFilter === 'new' && product.badge !== 'new') return false
+    if (selectedQuery) {
+      const searchableContent = [
+        product.name,
+        product.brand,
+        product.category,
+        product.description,
+      ]
+        .join(' ')
+        .toLowerCase()
+
+      if (!searchableContent.includes(selectedQuery)) return false
+    }
     return true
   })
 

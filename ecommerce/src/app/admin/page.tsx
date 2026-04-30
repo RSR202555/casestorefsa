@@ -186,7 +186,7 @@ type Category = {
   created_at: string
 }
 
-type AdminSection = 'dashboard' | 'products' | 'orders' | 'customers' | 'categories' | 'reports' | 'settings'
+type AdminSection = 'dashboard' | 'products' | 'inventory' | 'orders' | 'customers' | 'categories' | 'reports' | 'settings'
 
 type KpiCard = {
   key: string
@@ -235,6 +235,7 @@ function normalizeStatus(status: string) {
 const menuItems: Array<{ key: AdminSection; label: string }> = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'products', label: 'Produtos' },
+  { key: 'inventory', label: 'Estoque' },
   { key: 'orders', label: 'Pedidos' },
   { key: 'customers', label: 'Clientes' },
   { key: 'categories', label: 'Categorias' },
@@ -245,6 +246,7 @@ const menuItems: Array<{ key: AdminSection; label: string }> = [
 const sectionTitles: Record<AdminSection, string> = {
   dashboard: 'Painel administrativo',
   products: 'Gestao de produtos',
+  inventory: 'Gestao de estoque',
   orders: 'Gestao de pedidos',
   customers: 'Gestao de clientes',
   categories: 'Gestao de categorias',
@@ -351,7 +353,7 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    if (activeSection !== 'products') return
+    if (activeSection !== 'products' && activeSection !== 'inventory') return
     let active = true
     setProductsLoading(true)
 
@@ -1149,6 +1151,8 @@ export default function AdminPage() {
       ? 'Buscar cliente, email ou cidade...'
       : activeSection === 'products'
         ? 'Buscar produto, SKU ou categoria...'
+        : activeSection === 'inventory'
+          ? 'Buscar produto ou SKU para ajustar estoque...'
       : activeSection === 'orders'
           ? 'Buscar pedido, cliente ou status...'
           : 'Buscar...'
@@ -1614,7 +1618,7 @@ export default function AdminPage() {
                               <img
                                 src={productImagePreview}
                                 alt="Preview do produto"
-                                className="max-h-[26rem] w-full object-contain"
+                                className="max-h-[26rem] max-w-full object-contain"
                               />
                             </div>
                           </div>
@@ -1756,55 +1760,27 @@ export default function AdminPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h2 className="text-xl font-semibold text-neutral-900">Produtos</h2>
-                          <p className="mt-1 text-sm text-neutral-400">Lista administravel do catalogo.</p>
+                          <p className="mt-1 text-sm text-neutral-400">Lista administravel do catalogo com foco em cadastro e edicao.</p>
                         </div>
                         {productsLoading ? <span className="text-sm text-neutral-400">Atualizando...</span> : null}
                       </div>
 
                       <div className="mt-6 rounded-[24px] border border-neutral-200 bg-neutral-50 p-4">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                           <div>
-                            <p className="text-sm font-semibold text-neutral-900">Estoque operacional</p>
+                            <p className="text-sm font-semibold text-neutral-900">Estoque separado do cadastro</p>
                             <p className="mt-1 text-xs text-neutral-500">
-                              Selecione um produto na lista para ajustar entrada ou saida manual.
+                              A gestao operacional de entrada, saida e alerta minimo agora fica na aba Estoque.
                             </p>
                           </div>
-                          {selectedStockProduct ? (
-                            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-neutral-700">
-                              {selectedStockProduct.name} · {selectedStockProduct.inventory?.available_stock ?? 0} un.
-                            </span>
-                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => setActiveSection('inventory')}
+                            className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white"
+                          >
+                            Abrir tela de estoque
+                          </button>
                         </div>
-
-                        {selectedStockProduct ? (
-                          <form className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1.2fr_auto]" onSubmit={handleAdjustInventory}>
-                            <input
-                              type="number"
-                              value={stockForm.quantity_delta}
-                              onChange={(event) => setStockForm((prev) => ({ ...prev, quantity_delta: event.target.value }))}
-                              className="rounded-2xl border border-neutral-200 bg-white px-4 py-3"
-                              placeholder="Delta de estoque (+10 ou -2)"
-                              required
-                            />
-                            <input
-                              type="number"
-                              min="0"
-                              value={stockForm.low_stock_threshold}
-                              onChange={(event) => setStockForm((prev) => ({ ...prev, low_stock_threshold: event.target.value }))}
-                              className="rounded-2xl border border-neutral-200 bg-white px-4 py-3"
-                              placeholder="Alerta minimo"
-                            />
-                            <input
-                              value={stockForm.notes}
-                              onChange={(event) => setStockForm((prev) => ({ ...prev, notes: event.target.value }))}
-                              className="rounded-2xl border border-neutral-200 bg-white px-4 py-3"
-                              placeholder="Observacao do ajuste"
-                            />
-                            <button type="submit" className="rounded-full bg-primary-500 px-5 py-3 text-sm font-semibold text-white">
-                              Salvar estoque
-                            </button>
-                          </form>
-                        ) : null}
                       </div>
 
                       <div className="mt-6 overflow-x-auto">
@@ -1860,6 +1836,7 @@ export default function AdminPage() {
                                           low_stock_threshold: '',
                                           notes: '',
                                         })
+                                        setActiveSection('inventory')
                                       }}
                                       className="rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700"
                                     >
@@ -1880,6 +1857,164 @@ export default function AdminPage() {
                               <tr>
                                 <td colSpan={6} className="px-4 py-8 text-center text-sm text-neutral-400">
                                   Nenhum produto cadastrado ainda.
+                                </td>
+                              </tr>
+                            ) : null}
+                          </tbody>
+                        </table>
+                      </div>
+                    </article>
+                  </section>
+                ) : null}
+
+                {activeSection === 'inventory' ? (
+                  <section className="grid gap-6 xl:grid-cols-[0.95fr_1.35fr]">
+                    <article className="rounded-[28px] border border-neutral-100 bg-white p-6 shadow-soft">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-semibold text-neutral-900">Ajuste de estoque</h2>
+                          <p className="mt-1 text-sm text-neutral-400">
+                            Controle entradas, saidas manuais e alertas minimos sem misturar com o cadastro.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveSection('products')}
+                          className="rounded-full border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-50"
+                        >
+                          Ver produtos
+                        </button>
+                      </div>
+
+                      <div className="mt-6 rounded-[24px] border border-neutral-200 bg-neutral-50 p-4">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-neutral-900">Produto selecionado</p>
+                            <p className="mt-1 text-xs text-neutral-500">
+                              Escolha um item na tabela para registrar movimentacoes manuais.
+                            </p>
+                          </div>
+                          {selectedStockProduct ? (
+                            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-neutral-700">
+                              {selectedStockProduct.name} · {selectedStockProduct.inventory?.available_stock ?? 0} un.
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-neutral-500">
+                              Nenhum produto selecionado
+                            </span>
+                          )}
+                        </div>
+
+                        {selectedStockProduct ? (
+                          <form className="mt-4 space-y-3" onSubmit={handleAdjustInventory}>
+                            <input
+                              type="number"
+                              value={stockForm.quantity_delta}
+                              onChange={(event) => setStockForm((prev) => ({ ...prev, quantity_delta: event.target.value }))}
+                              className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3"
+                              placeholder="Delta de estoque (+10 ou -2)"
+                              required
+                            />
+                            <input
+                              type="number"
+                              min="0"
+                              value={stockForm.low_stock_threshold}
+                              onChange={(event) => setStockForm((prev) => ({ ...prev, low_stock_threshold: event.target.value }))}
+                              className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3"
+                              placeholder="Alerta minimo"
+                            />
+                            <textarea
+                              value={stockForm.notes}
+                              onChange={(event) => setStockForm((prev) => ({ ...prev, notes: event.target.value }))}
+                              className="min-h-[120px] w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3"
+                              placeholder="Observacao do ajuste"
+                            />
+                            <button type="submit" className="btn-primary w-full">
+                              Salvar estoque
+                            </button>
+                          </form>
+                        ) : (
+                          <div className="mt-4 rounded-2xl border border-dashed border-neutral-300 bg-white px-4 py-6 text-sm text-neutral-500">
+                            Selecione um produto na lista ao lado para liberar o formulario de ajuste.
+                          </div>
+                        )}
+                      </div>
+                    </article>
+
+                    <article className="rounded-[28px] border border-neutral-100 bg-white p-6 shadow-soft">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-semibold text-neutral-900">Estoque operacional</h2>
+                          <p className="mt-1 text-sm text-neutral-400">Visao dedicada para localizar um produto e ajustar sua disponibilidade.</p>
+                        </div>
+                        {productsLoading ? <span className="text-sm text-neutral-400">Atualizando...</span> : null}
+                      </div>
+
+                      <div className="mt-6 overflow-x-auto">
+                        <table className="min-w-full text-left">
+                          <thead>
+                            <tr className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                              <th className="px-4 py-3">Produto</th>
+                              <th className="px-4 py-3">SKU</th>
+                              <th className="px-4 py-3">Preco</th>
+                              <th className="px-4 py-3">Estoque</th>
+                              <th className="px-4 py-3">Status</th>
+                              <th className="px-4 py-3 text-right">Acoes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredProducts.map((product: ProductRow) => {
+                              const isSelected = selectedStockProductId === product.id
+
+                              return (
+                                <tr key={product.id} className={`border-t border-neutral-100 ${isSelected ? 'bg-primary-50/60' : ''}`}>
+                                  <td className="px-4 py-4">
+                                    <span className="font-medium text-neutral-900">{product.name}</span>
+                                    {Array.isArray(product.categories) && product.categories.length > 0 && (
+                                      <div className="mt-1 flex flex-wrap gap-1">
+                                        {(product.categories as { id: string; name: string }[]).map((cat) => (
+                                          <span key={cat.id} className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold text-primary-700">
+                                            {cat.name}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-4 text-sm text-neutral-500">{product.sku}</td>
+                                  <td className="px-4 py-4 font-semibold text-neutral-900">{formatCurrency(product.price)}</td>
+                                  <td className="px-4 py-4 text-sm text-neutral-500">{product.inventory?.available_stock ?? 0}</td>
+                                  <td className="px-4 py-4">
+                                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-500'}`}>
+                                      {product.is_active ? 'Ativo' : 'Inativo'}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-4 text-right">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedStockProductId(product.id)
+                                        setStockForm({
+                                          quantity_delta: '',
+                                          low_stock_threshold: '',
+                                          notes: '',
+                                        })
+                                      }}
+                                      className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                                        isSelected
+                                          ? 'bg-primary-500 text-white'
+                                          : 'border border-neutral-200 text-neutral-700'
+                                      }`}
+                                    >
+                                      {isSelected ? 'Selecionado' : 'Selecionar'}
+                                    </button>
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                            {!productsLoading && filteredProducts.length === 0 ? (
+                              <tr>
+                                <td colSpan={6} className="px-4 py-8 text-center text-sm text-neutral-400">
+                                  Nenhum produto encontrado para ajustar estoque.
                                 </td>
                               </tr>
                             ) : null}

@@ -43,47 +43,6 @@ export default async function HomePage() {
       {promoEnabled && <Promotions />}
       <Testimonials />
 
-      <section
-        id="sobre"
-        className="bg-neutral-900 py-16 text-white lg:py-24"
-      >
-        <div className="container-custom grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-10">
-          <div>
-            <span className="mb-4 inline-block text-sm font-semibold uppercase tracking-[0.2em] text-primary-300">
-              Sobre a marca
-            </span>
-            <h2 className="font-display text-3xl font-semibold md:text-4xl">
-              Curadoria focada em fragrancias que realmente marcam presenca
-            </h2>
-            <p className="mt-5 max-w-2xl text-neutral-300">
-              A Essencia Feminina nasceu para unir selecao premium, atendimento
-              proximo e uma experiencia de compra elegante. O projeto ja tinha
-              a frente visual pronta e hoje ganhou a primeira base solida de
-              backend, autenticacao e APIs.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-            {[
-              { label: 'Marcas premium', value: '50+' },
-              { label: 'Clientes atendidas', value: '10 mil' },
-              { label: 'Estados com envio', value: '27' },
-              { label: 'Checkout seguro', value: 'PIX + cartao' },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur sm:p-6"
-              >
-                <p className="text-3xl font-bold text-primary-300">
-                  {item.value}
-                </p>
-                <p className="mt-2 text-sm text-neutral-300">{item.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <StoreLocation />
 
       <section
@@ -104,21 +63,13 @@ export default async function HomePage() {
               acompanhamento de compra.
             </p>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <div className="rounded-3xl bg-white p-6 shadow-soft">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-neutral-400">
                   WhatsApp
                 </p>
                 <p className="mt-3 text-lg font-semibold text-neutral-900">
-                  (11) 99999-0000
-                </p>
-              </div>
-              <div className="rounded-3xl bg-white p-6 shadow-soft">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-neutral-400">
-                  E-mail
-                </p>
-                <p className="mt-3 text-lg font-semibold text-neutral-900">
-                  contato@essenciafeminina.com
+                  (75) 98286-3219
                 </p>
               </div>
               <div className="rounded-3xl bg-white p-6 shadow-soft">
@@ -126,7 +77,10 @@ export default async function HomePage() {
                   Horario
                 </p>
                 <p className="mt-3 text-lg font-semibold text-neutral-900">
-                  Seg a Sex, 9h as 18h
+                  Seg - Sex: 8h30 as 17h30
+                </p>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Sabado: 8h30 as 13h
                 </p>
               </div>
             </div>

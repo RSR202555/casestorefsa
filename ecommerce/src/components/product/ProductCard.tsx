@@ -37,7 +37,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             src={product.image}
             alt={product.name}
             fill
-            className="object-contain transition-transform duration-500 group-hover:scale-105"
+            className={`object-contain transition-all duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-105`}
             onLoad={() => setImageLoaded(true)}
             priority={priority}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -74,7 +74,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </button>
 
           {/* Loading skeleton */}
-          {!imageLoaded && <div className="absolute inset-0 animate-pulse bg-neutral-100" />}
+          {!imageLoaded && <div className="absolute inset-0 bg-neutral-100" />}
         </div>
 
         <div className="p-3 sm:p-4">
