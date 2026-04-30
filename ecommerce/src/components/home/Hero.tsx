@@ -27,8 +27,8 @@ export default function Hero() {
             </div>
 
             <h1 className="max-w-[560px] text-[2.35rem] font-extrabold leading-[0.95] sm:text-5xl md:text-6xl">
-              Perfumes que
-              <span className="block">marcam presenca</span>
+              Perfumes Que
+              <span className="block">Marcam Presença</span>
             </h1>
 
             <p className="mt-4 max-w-[470px] text-[0.95rem] leading-7 text-white/84 sm:mt-6 sm:text-lg sm:leading-8">
