@@ -1,0 +1,11 @@
+{
+  "installCommand": "cd ecommerce && npm install",
+  "buildCommand": "cd ecommerce && npm run build",
+  "outputDirectory": "ecommerce/.next",
+  "crons": [
+    {
+      "path": "/api/cron/supabase-keepalive",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
