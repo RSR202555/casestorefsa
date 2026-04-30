@@ -50,6 +50,26 @@ export async function POST(request: NextRequest) {
     return Errors.internal('Erro ao criar conta');
   }
 
+  if (data.user?.id) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert(
+        {
+          id: data.user.id,
+          role: 'customer',
+          full_name,
+          phone: phone ?? null,
+          cpf: cpf ?? null,
+        },
+        { onConflict: 'id' }
+      );
+
+    if (profileError) {
+      console.error('[register profile]', profileError.message);
+      return Errors.internal('Erro ao criar perfil da conta');
+    }
+  }
+
   return ok(
     { user_id: data.user?.id, message: 'Conta criada com sucesso! Você já pode entrar.' },
     201

@@ -47,16 +47,42 @@ export async function requireAuth(
       .single();
 
     if (profileError || !profile) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: {
-            code: 'PROFILE_NOT_FOUND',
-            message: 'Perfil de usuário não encontrado',
+      const { data: createdProfile, error: createProfileError } = await serviceClient
+        .from('profiles')
+        .upsert(
+          {
+            id: user.id,
+            role: 'customer',
+            full_name:
+              typeof user.user_metadata?.full_name === 'string'
+                ? user.user_metadata.full_name
+                : user.email ?? 'Cliente',
+            phone: typeof user.user_metadata?.phone === 'string' ? user.user_metadata.phone : null,
+            cpf: typeof user.user_metadata?.cpf === 'string' ? user.user_metadata.cpf : null,
           },
-        },
-        { status: 401 }
-      );
+          { onConflict: 'id' }
+        )
+        .select('role')
+        .single();
+
+      if (createProfileError || !createdProfile) {
+        return NextResponse.json(
+          {
+            data: null,
+            error: {
+              code: 'PROFILE_NOT_FOUND',
+              message: 'Perfil de usuário não encontrado',
+            },
+          },
+          { status: 401 }
+        );
+      }
+
+      return {
+        userId: user.id,
+        role: createdProfile.role as UserRole,
+        email: user.email ?? '',
+      };
     }
 
     return {

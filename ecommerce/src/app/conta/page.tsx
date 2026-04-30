@@ -164,6 +164,10 @@ export default function AccountPage() {
         if (!active) return
 
         if (!profileResponse.ok || profilePayload.error || !profilePayload.data) {
+          if (profileResponse.status === 401) {
+            router.replace('/login?redirect=/conta')
+            return
+          }
           setError(profilePayload.error?.message ?? 'Nao foi possivel carregar sua conta')
           return
         }
@@ -193,7 +197,7 @@ export default function AccountPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [router])
 
   async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

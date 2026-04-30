@@ -26,19 +26,14 @@ export function createServerClient() {
 
   return createSsrServerClient(url, anonKey, {
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+      getAll() {
+        return cookieStore.getAll()
       },
-      set(name: string, value: string, options: CookieOptions) {
+      setAll(cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }>) {
         try {
-          cookieStore.set({ name, value, ...options })
-        } catch {
-          // Ignora em contextos read-only.
-        }
-      },
-      remove(name: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value: '', ...options })
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
         } catch {
           // Ignora em contextos read-only.
         }
