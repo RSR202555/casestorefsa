@@ -298,10 +298,22 @@ export const OrderService = {
     const newOrder = order as DbOrder;
 
     // Reserva estoque
-    await InventoryService.reserve(
-      input.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
-      newOrder.id
-    );
+    try {
+      await InventoryService.reserve(
+        input.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+        newOrder.id
+      );
+    } catch (err) {
+      await supabase
+        .from('orders')
+        .update({
+          status: 'cancelado',
+          payment_status: 'failed',
+          notes: 'Pedido cancelado automaticamente por falha na reserva de estoque.',
+        })
+        .eq('id', newOrder.id);
+      throw err;
+    }
 
     return newOrder;
   },
@@ -443,7 +455,7 @@ export const OrderService = {
       note: 'Pagamento confirmado via webhook',
     };
 
-    const { error } = await supabase
+    const { data: updatedPayment, error } = await supabase
       .from('orders')
       .update({
         status: 'pago',
@@ -453,9 +465,13 @@ export const OrderService = {
         paid_at: paidAt,
         status_history: [...current.status_history, historyEntry],
       })
-      .eq('id', orderId);
+      .eq('id', orderId)
+      .neq('payment_status', 'paid')
+      .select('id')
+      .maybeSingle();
 
     if (error) throw new Error(`[OrderService] markAsPaid: ${error.message}`);
+    if (!updatedPayment) return;
 
     // Decrementa estoque definitivamente
     await InventoryService.decrementOnPayment(
@@ -486,6 +502,7 @@ export const OrderService = {
 
     const current = await OrderService.getById(orderId, undefined, true);
     if (!current) return;
+    if (current.payment_status === 'paid') return;
 
     const newOrderStatus: OrderStatus =
       status === 'refunded' ? 'estornado' : 'cancelado';
@@ -497,11 +514,18 @@ export const OrderService = {
       note: `Pagamento ${status === 'failed' ? 'falhou' : status === 'expired' ? 'expirou' : 'estornado'}`,
     };
 
-    await supabase.from('orders').update({
+    const { data: updatedPayment, error } = await supabase.from('orders').update({
       status: newOrderStatus,
       payment_status: status,
       status_history: [...current.status_history, historyEntry],
-    }).eq('id', orderId);
+    })
+      .eq('id', orderId)
+      .neq('payment_status', 'paid')
+      .select('id')
+      .maybeSingle();
+
+    if (error) throw new Error(`[OrderService] markPaymentFailed: ${error.message}`);
+    if (!updatedPayment) return;
 
     // Libera reserva de estoque
     await InventoryService.releaseReservation(

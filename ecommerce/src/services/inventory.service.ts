@@ -20,6 +20,43 @@ function isLegacyInventoryError(error: { message?: string; code?: string } | nul
   );
 }
 
+function isMissingRpcError(error: { message?: string; code?: string } | null): boolean {
+  const message = error?.message ?? '';
+  return error?.code === 'PGRST202' || message.includes('function') || message.includes('schema cache');
+}
+
+function getUuidOrNull(value: string): string | null {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+    ? value
+    : null;
+}
+
+function throwInventoryRpcError(
+  error: { message?: string },
+  fallbackProductId: string,
+  fallbackQuantity: number
+): never {
+  const message = error.message ?? '';
+  const insufficient = message.match(/INSUFFICIENT_STOCK:([^:]+):(\d+):(\d+)/);
+
+  if (insufficient) {
+    throw new InsufficientStockError(
+      insufficient[1] ?? fallbackProductId,
+      Number(insufficient[2] ?? fallbackQuantity),
+      Number(insufficient[3] ?? 0)
+    );
+  }
+
+  const reservationMissing = message.match(/RESERVATION_NOT_FOUND:([^:]+):(\d+)/);
+  if (reservationMissing) {
+    throw new Error(
+      `Reserva de estoque não encontrada para produto ${reservationMissing[1]}`
+    );
+  }
+
+  throw new Error(message || 'Erro ao atualizar estoque');
+}
+
 export class InsufficientStockError extends Error {
   constructor(
     public productId: string,
@@ -303,24 +340,38 @@ export const InventoryService = {
   ): Promise<void> {
     const supabase = createServiceClient();
 
+    const { error: rpcError } = await supabase.rpc('consume_reserved_inventory_items', {
+      p_items: items,
+      p_order_id: orderId,
+      p_triggered_by: getUuidOrNull(triggeredBy),
+    });
+
+    if (!rpcError) return;
+    if (!isMissingRpcError(rpcError)) {
+      throwInventoryRpcError(rpcError, items[0]?.product_id ?? '', items[0]?.quantity ?? 0);
+    }
+
     for (const item of items) {
       const current = await InventoryService.getByProductId(item.product_id);
       if (!current) continue;
 
-      const available = current.stock_quantity - current.reserved_stock;
-      if (available < item.quantity) {
+      if (current.stock_quantity < item.quantity || current.reserved_stock < item.quantity) {
         throw new InsufficientStockError(
           item.product_id,
           item.quantity,
-          available
+          Math.min(current.stock_quantity, current.reserved_stock)
         );
       }
 
       const newQuantity = current.stock_quantity - item.quantity;
+      const newReserved = Math.max(0, current.reserved_stock - item.quantity);
 
       const { error } = await supabase
         .from('inventory')
-        .update({ stock_quantity: newQuantity })
+        .update({
+          stock_quantity: newQuantity,
+          reserved_stock: newReserved,
+        })
         .eq('product_id', item.product_id);
 
       if (error && !isLegacyInventoryError(error)) {
@@ -335,7 +386,7 @@ export const InventoryService = {
         quantity_delta: -item.quantity,
         stock_after: newQuantity,
         order_id: orderId,
-        triggered_by: triggeredBy,
+        triggered_by: getUuidOrNull(triggeredBy) ?? undefined,
       });
     }
   },
@@ -348,6 +399,16 @@ export const InventoryService = {
     orderId: string
   ): Promise<void> {
     const supabase = createServiceClient();
+
+    const { error: rpcError } = await supabase.rpc('reserve_inventory_items', {
+      p_items: items,
+      p_order_id: orderId,
+    });
+
+    if (!rpcError) return;
+    if (!isMissingRpcError(rpcError)) {
+      throwInventoryRpcError(rpcError, items[0]?.product_id ?? '', items[0]?.quantity ?? 0);
+    }
 
     for (const item of items) {
       const current = await InventoryService.getByProductId(item.product_id);
@@ -391,6 +452,16 @@ export const InventoryService = {
     orderId: string
   ): Promise<void> {
     const supabase = createServiceClient();
+
+    const { error: rpcError } = await supabase.rpc('release_reserved_inventory_items', {
+      p_items: items,
+      p_order_id: orderId,
+    });
+
+    if (!rpcError) return;
+    if (!isMissingRpcError(rpcError)) {
+      console.error('[InventoryService] releaseReservation rpc:', rpcError.message);
+    }
 
     for (const item of items) {
       const current = await InventoryService.getByProductId(item.product_id);
