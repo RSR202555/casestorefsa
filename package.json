@@ -1,0 +1,12 @@
+{
+  "name": "casestorefsa",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix ecommerce",
+    "vercel-build": "npm run build --prefix ecommerce"
+  },
+  "dependencies": {
+    "next": "14.2.3"
+  }
+}

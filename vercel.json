@@ -1,6 +1,6 @@
 {
-  "installCommand": "cd ecommerce && npm install",
-  "buildCommand": "cd ecommerce && npm run build",
+  "installCommand": "npm ci --prefix ecommerce",
+  "buildCommand": "npm run build --prefix ecommerce",
   "outputDirectory": "ecommerce/.next",
   "crons": [
     {
