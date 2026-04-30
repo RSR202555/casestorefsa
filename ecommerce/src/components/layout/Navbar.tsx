@@ -33,14 +33,14 @@ export default function Navbar() {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-neutral-200/80 bg-white/95 shadow-soft backdrop-blur supports-[backdrop-filter]:bg-white/90">
       <div className="container-custom">
-        <div className="flex h-[68px] items-center justify-between gap-3 sm:h-[72px] sm:gap-6">
-          <Link href="/" className="flex items-center">
+        <div className="flex h-16 items-center justify-between gap-2 sm:h-[72px] sm:gap-6">
+          <Link href="/" className="flex min-w-0 shrink items-center">
             <Image
               src="/images/logo.jpeg"
               alt="Case Store"
               width={126}
               height={44}
-              className="h-9 w-auto object-contain sm:h-11"
+              className="h-8 w-auto max-w-[92px] object-contain sm:h-11 sm:max-w-none"
               priority
             />
           </Link>
@@ -57,15 +57,15 @@ export default function Navbar() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2.5">
             <a
               href={whatsappHref}
               target="_blank"
               rel="noreferrer"
               aria-label="WhatsApp"
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-primary-500 sm:h-11 sm:w-11"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-primary-500 sm:h-11 sm:w-11"
             >
-              <svg className="block h-5 w-5 flex-none" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="block h-[18px] w-[18px] flex-none sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20.52 3.48A11.86 11.86 0 0012.07 0C5.52 0 .2 5.32.2 11.87c0 2.09.55 4.13 1.58 5.92L0 24l6.39-1.67a11.82 11.82 0 005.68 1.45h.01c6.54 0 11.86-5.32 11.86-11.87 0-3.17-1.23-6.14-3.42-8.43zM12.08 21.76h-.01a9.84 9.84 0 01-5.01-1.37l-.36-.21-3.79.99 1.01-3.69-.23-.38a9.86 9.86 0 01-1.51-5.23c0-5.44 4.43-9.87 9.88-9.87 2.64 0 5.12 1.03 6.99 2.9a9.8 9.8 0 012.89 6.98c0 5.45-4.43 9.88-9.87 9.88zm5.42-7.4c-.3-.15-1.77-.87-2.05-.97-.27-.1-.47-.15-.67.15s-.77.97-.95 1.17c-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.48-.5-.67-.5h-.57c-.2 0-.52.08-.79.38s-1.04 1.02-1.04 2.49 1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.27.49 1.7.63.71.23 1.35.2 1.86.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" />
               </svg>
             </a>
@@ -75,9 +75,9 @@ export default function Navbar() {
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram"
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-primary-500 sm:h-11 sm:w-11"
+              className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-primary-500 min-[380px]:inline-flex sm:h-11 sm:w-11"
             >
-              <svg className="block h-5 w-5 flex-none" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="block h-[18px] w-[18px] flex-none sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M7.75 2h8.5A5.76 5.76 0 0122 7.75v8.5A5.76 5.76 0 0116.25 22h-8.5A5.76 5.76 0 012 16.25v-8.5A5.76 5.76 0 017.75 2zm0 1.8A3.96 3.96 0 003.8 7.75v8.5a3.96 3.96 0 003.95 3.95h8.5a3.96 3.96 0 003.95-3.95v-8.5a3.96 3.96 0 00-3.95-3.95h-8.5zm8.95 1.35a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4zM12 6.86A5.14 5.14 0 1112 17.14 5.14 5.14 0 0112 6.86zm0 1.8A3.34 3.34 0 1012 15.34 3.34 3.34 0 0012 8.66z" />
               </svg>
             </a>
@@ -111,7 +111,7 @@ export default function Navbar() {
               }}
               className="rounded-full p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-primary-500 sm:p-2.5"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-[18px] w-[18px] sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
@@ -131,7 +131,7 @@ export default function Navbar() {
               aria-label="Bolsa"
               className="inline-flex rounded-full border border-neutral-200 p-2 text-neutral-600 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-500 sm:hidden"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </Link>
@@ -151,7 +151,7 @@ export default function Navbar() {
               aria-label={isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
               className="rounded-full p-2 text-neutral-600 transition-colors hover:bg-neutral-100 lg:hidden sm:p-2.5"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-[18px] w-[18px] sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                 ) : (

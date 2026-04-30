@@ -28,7 +28,7 @@ export default function StoreLocation() {
             <div className="relative h-64 w-full sm:h-72 lg:h-full lg:min-h-[420px]">
               <Image
                 src="/images/frenteloja.jpeg"
-                alt="Frente da loja Essência Feminina"
+                alt="Frente da loja Case Store"
                 fill
                 className="object-contain"
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -58,7 +58,7 @@ export default function StoreLocation() {
                     Endereço
                   </p>
                   <p className="mt-2 font-semibold text-neutral-900">
-                    Loja Essência Feminina
+                    Loja Case Store
                   </p>
                   <p className="mt-1 text-sm text-neutral-500">
                     Lat: -12.2558 / Lng: -38.9610

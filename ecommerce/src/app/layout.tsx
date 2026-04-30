@@ -17,9 +17,17 @@ const sora = Sora({
 })
 
 export const metadata: Metadata = {
-  title: 'Essência Feminina | Perfumes Premium Importados',
+  title: {
+    default: 'Case Store',
+    template: '%s | Case Store',
+  },
   description: 'Descubra fragrâncias exclusivas que revelam sua essência. Perfumes importados das melhores marcas com qualidade e autenticidade garantida.',
   keywords: 'perfumes, fragrâncias, importados, feminino, luxo, Chanel, Dior, Lancôme',
+  icons: {
+    icon: '/images/logo.jpeg',
+    shortcut: '/images/logo.jpeg',
+    apple: '/images/logo.jpeg',
+  },
 }
 
 export default function RootLayout({

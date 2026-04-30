@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       customerName: order.customer_snapshot.full_name || 'Cliente',
       customerEmail,
       customerCpf: order.customer_snapshot.cpf,
-      description: `Essência Feminina - Pedido #${order.id.slice(0, 8).toUpperCase()}`,
+      description: `Case Store - Pedido #${order.id.slice(0, 8).toUpperCase()}`,
     });
 
     // Persiste a referência do pagamento (charge_id) no pedido

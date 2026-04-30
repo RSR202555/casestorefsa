@@ -23,7 +23,7 @@ type ProductsPageProps = {
 }
 
 export const metadata: Metadata = {
-  title: 'Produtos | Case Store',
+  title: 'Produtos',
   description: 'Catálogo com perfumes premium, ofertas e lançamentos.',
 }
 
@@ -109,11 +109,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   })
 
   return (
-    <div className="min-h-screen bg-[#F8F7F5] pb-16 pt-24 lg:pb-20 lg:pt-32">
+    <div className="min-h-screen bg-[#F8F7F5] pb-14 pt-20 sm:pb-16 sm:pt-24 lg:pb-20 lg:pt-32">
       {/* Main Content */}
-      <section className="container-custom mt-6 grid gap-6 lg:mt-8 lg:grid-cols-[260px_1fr] lg:gap-8">
+      <section className="container-custom mt-4 grid gap-5 sm:mt-6 lg:mt-8 lg:grid-cols-[260px_1fr] lg:gap-8">
         {/* Sidebar */}
-        <aside className="h-fit space-y-6 rounded-[1.75rem] bg-white p-4 shadow-soft sm:p-6 lg:sticky lg:top-28">
+        <aside className="h-fit space-y-5 rounded-[1.5rem] bg-white p-4 shadow-soft sm:space-y-6 sm:rounded-[1.75rem] sm:p-6 lg:sticky lg:top-28">
           {/* Categorias */}
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
@@ -134,7 +134,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 <Link
                   key={cat.id}
                   href={`/products?category=${cat.slug}`}
-                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
                     selectedCategory === cat.slug
                       ? 'bg-primary-500 text-white'
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
@@ -242,7 +242,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         {/* Product Area */}
         <div>
           {/* Header */}
-          <div className="mb-5 flex flex-col gap-3 rounded-[1.75rem] bg-white px-4 py-4 shadow-soft sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="mb-5 flex flex-col gap-3 rounded-[1.5rem] bg-white px-4 py-4 shadow-soft sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:rounded-[1.75rem] sm:px-6">
             <p className="text-base font-semibold text-neutral-900">
               <span className="text-primary-500">{filteredProducts.length}</span> produtos encontrados
             </p>

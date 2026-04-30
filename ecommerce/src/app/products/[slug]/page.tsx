@@ -28,12 +28,12 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Produto nao encontrado | Essencia Feminina',
+      title: 'Produto nao encontrado',
     }
   }
 
   return {
-    title: `${product.name} | Essencia Feminina`,
+    title: product.name,
     description: product.description,
   }
 }

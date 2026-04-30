@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import PromoBanner from '@/components/home/PromoBanner'
 import Hero from '@/components/home/Hero'
 import TrustSection from '@/components/home/TrustSection'
 import BestSellers from '@/components/home/BestSellers'
@@ -12,7 +11,9 @@ import { createServiceClient } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Essencia Feminina | Perfumes Premium',
+  title: {
+    absolute: 'Case Store',
+  },
   description:
     'Perfumes importados, selecao premium e entrega para todo o Brasil.',
 }
@@ -36,7 +37,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <PromoBanner />
       <Hero />
       <TrustSection />
       <BestSellers />

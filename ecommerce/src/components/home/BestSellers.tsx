@@ -16,16 +16,16 @@ export default async function BestSellers() {
   if (bestSellers.length === 0) return null
 
   return (
-    <section className="bg-neutral-50 py-16 lg:py-24">
+    <section className="bg-neutral-50 py-12 sm:py-16 lg:py-24">
       <div className="container-custom">
-        <div className="mb-10 text-center sm:mb-14">
+        <div className="mb-8 text-center sm:mb-14">
           <span className="inline-block text-primary-500 text-sm font-semibold tracking-[0.2em] uppercase mb-4">
             Mais Vendidos
           </span>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold text-neutral-900 mb-4">
+          <h2 className="font-display text-2xl font-semibold text-neutral-900 mb-4 sm:text-3xl md:text-4xl lg:text-5xl">
             Os Favoritos das Nossas Clientes
           </h2>
-          <p className="text-neutral-500 max-w-2xl mx-auto">
+          <p className="text-sm leading-6 text-neutral-500 max-w-2xl mx-auto sm:text-base">
             Descubra os perfumes mais desejados, escolhidos por milhares de mulheres que encontraram sua fragrância assinatura.
           </p>
         </div>
