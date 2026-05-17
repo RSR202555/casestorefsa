@@ -101,11 +101,11 @@ export default function LoginPage() {
             Login
           </span>
           <h1 className="mt-4 text-3xl font-semibold text-neutral-900">
-            Entre para acessar sua conta ou o painel admin
+            Entre para acessar sua conta
           </h1>
           <p className="mt-4 text-neutral-600">
-            Use o e-mail e a senha cadastrados no Supabase. O admin criado agora
-            tambem entra por aqui.
+            Use o e-mail e a senha cadastrados para acompanhar seus pedidos,
+            enderecos e dados da conta.
           </p>
 
           <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
@@ -169,9 +169,6 @@ export default function LoginPage() {
           <div className="mt-6 flex flex-wrap gap-4">
             <Link href="/registro" className="btn-secondary">
               Criar conta
-            </Link>
-            <Link href="/admin" className="btn-ghost">
-              Ir para admin
             </Link>
           </div>
         </div>
