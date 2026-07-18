@@ -25,9 +25,9 @@ export default function Hero() {
 
             {/* Title - Playfair Display */}
             <h1 className="font-display font-medium leading-[1.1] text-white text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] tracking-tight">
-              Perfumes Que
+              Case Store
               <span className="block mt-2 font-normal italic drop-shadow-sm">
-                Marcam Presença
+                Por Mayana Lais
               </span>
             </h1>
 
