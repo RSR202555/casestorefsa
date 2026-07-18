@@ -39,9 +39,8 @@ export default function Navbar() {
       {/* Top Announcement Bar */}
       <div className="bg-[#e4048c] text-white py-1.5 text-center text-[9px] sm:text-[10px] font-bold tracking-[0.18em] uppercase">
         <div className="container-custom flex justify-center gap-6 sm:gap-12">
-          <span>✨ FRETE GRÁTIS ACIMA DE R$ 300</span>
-          <span className="hidden md:inline">🔥 20% OFF COM CUPOM: CASE20</span>
-          <span className="hidden sm:inline">💬 ATENDIMENTO WHATSAPP</span>
+          <span>✨ PERFUMES IMPORTADOS 100% ORIGINAIS</span>
+          <span>💬 ATENDIMENTO WHATSAPP</span>
         </div>
       </div>
 
