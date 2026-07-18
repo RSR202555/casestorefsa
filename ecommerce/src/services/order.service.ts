@@ -194,17 +194,29 @@ export const OrderService = {
     }
 
     // Busca inventário separado (evita dependência de FK no schema cache)
-    const { data: inventoryRows } = await supabase
+    const { data: inventoryRows, error: invError } = await supabase
       .from('inventory')
       .select('product_id, stock_quantity, reserved_stock')
       .in('product_id', productIds);
 
-    const inventoryMap = new Map(
-      (inventoryRows ?? []).map((r) => [
-        r.product_id as string,
-        { stock_quantity: r.stock_quantity as number, reserved_stock: r.reserved_stock as number },
-      ])
-    );
+    const inventoryMap = new Map<string, { stock_quantity: number; reserved_stock: number }>();
+
+    if (invError || !inventoryRows) {
+      // Caso a tabela 'inventory' não exista (schema legado), busca diretamente dos campos de estoque da tabela products
+      products.forEach((prod) => {
+        inventoryMap.set(prod.id, {
+          stock_quantity: Number((prod.stock_quantity as number) ?? 0),
+          reserved_stock: Number((prod.reserved_stock as number) ?? 0),
+        });
+      });
+    } else {
+      inventoryRows.forEach((r) => {
+        inventoryMap.set(r.product_id as string, {
+          stock_quantity: Number(r.stock_quantity ?? 0),
+          reserved_stock: Number(r.reserved_stock ?? 0),
+        });
+      });
+    }
 
     // Monta snapshots dos itens
     const itemSnapshots: OrderItemSnapshot[] = input.items.map((item) => {

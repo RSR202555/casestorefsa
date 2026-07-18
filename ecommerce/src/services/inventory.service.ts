@@ -15,8 +15,10 @@ function isLegacyInventoryError(error: { message?: string; code?: string } | nul
   return (
     error?.code === 'PGRST205' ||
     error?.code === 'PGRST200' ||
+    error?.code === '42P01' ||
     message.includes('Could not find the table') ||
-    message.includes('Could not find a relationship')
+    message.includes('Could not find a relationship') ||
+    message.includes('does not exist')
   );
 }
 
@@ -374,10 +376,22 @@ export const InventoryService = {
         })
         .eq('product_id', item.product_id);
 
-      if (error && !isLegacyInventoryError(error)) {
-        throw new Error(
-          `[InventoryService] decrementOnPayment: ${error.message}`
-        );
+      if (error) {
+        if (!isLegacyInventoryError(error)) {
+          throw new Error(
+            `[InventoryService] decrementOnPayment: ${error.message}`
+          );
+        }
+        const legacyUpdate = await supabase
+          .from('products')
+          .update({
+            stock_quantity: newQuantity,
+            reserved_stock: newReserved,
+          })
+          .eq('id', item.product_id);
+        if (legacyUpdate.error) {
+          throw new Error(`[InventoryService] decrementOnPayment legacy: ${legacyUpdate.error.message}`);
+        }
       }
 
       await InventoryService._logMovement({
@@ -430,8 +444,19 @@ export const InventoryService = {
         })
         .eq('product_id', item.product_id);
 
-      if (error && !isLegacyInventoryError(error)) {
-        throw new Error(`[InventoryService] reserve: ${error.message}`);
+      if (error) {
+        if (!isLegacyInventoryError(error)) {
+          throw new Error(`[InventoryService] reserve: ${error.message}`);
+        }
+        const legacyUpdate = await supabase
+          .from('products')
+          .update({
+            reserved_stock: current.reserved_stock + item.quantity,
+          })
+          .eq('id', item.product_id);
+        if (legacyUpdate.error) {
+          throw new Error(`[InventoryService] reserve legacy: ${legacyUpdate.error.message}`);
+        }
       }
 
       await InventoryService._logMovement({
@@ -474,7 +499,13 @@ export const InventoryService = {
         .update({ reserved_stock: newReserved })
         .eq('product_id', item.product_id);
 
-      if (error && !isLegacyInventoryError(error)) continue; // não quebrar o cancelamento por erro de estoque
+      if (error) {
+        if (!isLegacyInventoryError(error)) continue;
+        await supabase
+          .from('products')
+          .update({ reserved_stock: newReserved })
+          .eq('id', item.product_id);
+      }
 
       await InventoryService._logMovement({
         product_id: item.product_id,
