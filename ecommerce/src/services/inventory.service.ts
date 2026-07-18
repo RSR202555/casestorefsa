@@ -349,7 +349,7 @@ export const InventoryService = {
     });
 
     if (!rpcError) return;
-    if (!isMissingRpcError(rpcError)) {
+    if (!isMissingRpcError(rpcError) && !isLegacyInventoryError(rpcError)) {
       throwInventoryRpcError(rpcError, items[0]?.product_id ?? '', items[0]?.quantity ?? 0);
     }
 
@@ -420,7 +420,7 @@ export const InventoryService = {
     });
 
     if (!rpcError) return;
-    if (!isMissingRpcError(rpcError)) {
+    if (!isMissingRpcError(rpcError) && !isLegacyInventoryError(rpcError)) {
       throwInventoryRpcError(rpcError, items[0]?.product_id ?? '', items[0]?.quantity ?? 0);
     }
 
