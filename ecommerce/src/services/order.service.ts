@@ -262,7 +262,40 @@ export const OrderService = {
       zip_code: address.zip_code.replace('-', ''),
     };
 
-    const totalValue = parseFloat((subtotal + shippingCost).toFixed(2));
+    let discount = 0;
+    let couponIdToIncrement: string | null = null;
+    let validatedCouponCode: string | null = null;
+
+    if (input.coupon_code) {
+      const { data: coupon, error: couponErr } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', input.coupon_code.trim().toUpperCase())
+        .maybeSingle();
+
+      if (couponErr) {
+        console.error('[OrderService] coupon fetch error:', couponErr);
+      }
+
+      if (
+        coupon &&
+        coupon.is_active &&
+        (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) &&
+        (coupon.max_uses === null || coupon.used_count < coupon.max_uses) &&
+        subtotal >= coupon.min_purchase_value
+      ) {
+        if (coupon.discount_type === 'percentage') {
+          discount = parseFloat((subtotal * (coupon.discount_value / 100)).toFixed(2));
+        } else if (coupon.discount_type === 'fixed') {
+          discount = coupon.discount_value;
+        }
+        discount = parseFloat(Math.min(discount, subtotal).toFixed(2));
+        couponIdToIncrement = coupon.id;
+        validatedCouponCode = coupon.code;
+      }
+    }
+
+    const totalValue = parseFloat(Math.max(0, subtotal - discount + shippingCost).toFixed(2));
     const orderNumber = `CS-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
     const { data: order, error: orderError } = await supabase
@@ -276,7 +309,8 @@ export const OrderService = {
         items: itemSnapshots,
         subtotal: parseFloat(subtotal.toFixed(2)),
         shipping_cost: shippingCost,
-        discount: 0,
+        discount: discount,
+        coupon_code: validatedCouponCode,
         total: totalValue,
         total_amount: totalValue,
         payment_method: input.payment_method,
@@ -296,6 +330,25 @@ export const OrderService = {
 
     if (orderError) throw new Error(`[OrderService] create: ${orderError.message}`);
     const newOrder = order as DbOrder;
+
+    // Incrementa contador de usos do cupom
+    if (couponIdToIncrement) {
+      try {
+        const { data: couponToUpdate } = await supabase
+          .from('coupons')
+          .select('used_count')
+          .eq('id', couponIdToIncrement)
+          .single();
+        if (couponToUpdate) {
+          await supabase
+            .from('coupons')
+            .update({ used_count: (couponToUpdate.used_count || 0) + 1 })
+            .eq('id', couponIdToIncrement);
+        }
+      } catch (couponErr) {
+        console.error('[OrderService] Failed to increment coupon usage:', couponErr);
+      }
+    }
 
     // Reserva estoque
     try {

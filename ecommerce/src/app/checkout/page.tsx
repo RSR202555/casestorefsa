@@ -65,7 +65,15 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null)
   const [fetchingZip, setFetchingZip] = useState(false)
 
-  const grandTotal = total + (selectedShipping?.price ?? 0)
+  // Cupons
+  const [couponInput, setCouponInput] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_type: string; discount_value: number } | null>(null)
+  const [couponDiscount, setCouponDiscount] = useState(0)
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState<string | null>(null)
+  const [couponSuccess, setCouponSuccess] = useState<string | null>(null)
+
+  const grandTotal = Math.max(0, total - couponDiscount) + (selectedShipping?.price ?? 0)
 
   // Pré-preenche dados do cliente com o perfil autenticado
   useEffect(() => {
@@ -172,6 +180,52 @@ export default function CheckoutPage() {
     }
   }
 
+  async function handleApplyCoupon(e: React.FormEvent) {
+    e.preventDefault()
+    if (!couponInput.trim()) return
+
+    setCouponLoading(true)
+    setCouponError(null)
+    setCouponSuccess(null)
+
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponInput.trim().toUpperCase(),
+          subtotal: total,
+        }),
+      })
+
+      const result = await response.json()
+      if (!response.ok || result.error) {
+        setCouponError(result.error?.message ?? 'Cupom inválido')
+        setAppliedCoupon(null)
+        setCouponDiscount(0)
+        return
+      }
+
+      const { coupon, discount } = result.data
+      setAppliedCoupon(coupon)
+      setCouponDiscount(discount)
+      setCouponSuccess(`Cupom "${coupon.code}" aplicado com sucesso!`)
+    } catch {
+      setCouponError('Erro ao validar o cupom')
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCoupon(null)
+    setCouponDiscount(0)
+    setCouponInput('')
+    setCouponSuccess(null)
+    setCouponError(null)
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedShipping) {
@@ -193,6 +247,7 @@ export default function CheckoutPage() {
           shipping_method: selectedShipping.service_name,
           shipping_cost: selectedShipping.price,
           payment_method: paymentMethod,
+          coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
         }),
       })
       const orderData = await orderRes.json() as { data?: { id: string }; error?: { message: string } }
@@ -489,6 +544,49 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
+                {/* Cupom de Desconto */}
+                <div className="my-4 border-t border-neutral-100 pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">Cupom de Desconto</p>
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between rounded-xl bg-primary-50/50 border border-primary-100 px-3 py-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary-500 font-bold tracking-wide">{appliedCoupon.code}</span>
+                        <span className="text-xs text-neutral-500">
+                          ({appliedCoupon.discount_type === 'percentage' ? `${appliedCoupon.discount_value}%` : `R$ ${appliedCoupon.discount_value}`} de desconto)
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveCoupon}
+                        className="text-xs font-bold text-rose-500 hover:text-rose-600 transition"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        className="flex-1 rounded-xl border border-neutral-200 px-3 py-2 text-sm uppercase placeholder-neutral-400 outline-none transition focus:border-primary-400"
+                        placeholder="EX: CASE20"
+                        disabled={couponLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="rounded-xl bg-primary-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-primary-600 disabled:opacity-50"
+                      >
+                        {couponLoading ? '...' : 'Aplicar'}
+                      </button>
+                    </div>
+                  )}
+                  {couponError && <p className="mt-1 text-xs text-rose-600">{couponError}</p>}
+                  {couponSuccess && <p className="mt-1 text-xs text-emerald-600">{couponSuccess}</p>}
+                </div>
+
                 <div className="my-4 border-t border-neutral-100" />
 
                 {/* Subtotal */}
@@ -496,6 +594,14 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>{formatCurrency(total)}</span>
                 </div>
+
+                {/* Desconto */}
+                {couponDiscount > 0 && (
+                  <div className="mt-2 flex justify-between text-sm text-emerald-600 font-semibold">
+                    <span>Desconto ({appliedCoupon?.code})</span>
+                    <span>-{formatCurrency(couponDiscount)}</span>
+                  </div>
+                )}
 
                 {/* Frete */}
                 <div className="mt-2 flex justify-between text-sm">

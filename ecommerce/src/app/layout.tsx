@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Sora } from 'next/font/google'
+import { Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import './globals.css'
@@ -10,10 +10,11 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: 'swap',
 })
 
-const sora = Sora({
+const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
+  weight: ['400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -37,7 +38,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className="scroll-smooth">
-      <body className={`${plusJakartaSans.variable} ${sora.variable} antialiased`}>
+      <body className={`${plusJakartaSans.variable} ${playfairDisplay.variable} antialiased`}>
         <Navbar />
         <main>{children}</main>
         <Footer />

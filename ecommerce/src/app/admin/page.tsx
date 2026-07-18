@@ -186,7 +186,20 @@ type Category = {
   created_at: string
 }
 
-type AdminSection = 'dashboard' | 'products' | 'inventory' | 'orders' | 'customers' | 'categories' | 'reports' | 'settings'
+type Coupon = {
+  id: string
+  code: string
+  discount_type: 'percentage' | 'fixed'
+  discount_value: number
+  min_purchase_value: number
+  max_uses: number | null
+  used_count: number
+  expires_at: string | null
+  is_active: boolean
+  created_at: string
+}
+
+type AdminSection = 'dashboard' | 'products' | 'inventory' | 'orders' | 'customers' | 'categories' | 'coupons' | 'reports' | 'settings'
 
 type KpiCard = {
   key: string
@@ -239,6 +252,7 @@ const menuItems: Array<{ key: AdminSection; label: string }> = [
   { key: 'orders', label: 'Pedidos' },
   { key: 'customers', label: 'Clientes' },
   { key: 'categories', label: 'Categorias' },
+  { key: 'coupons', label: 'Cupons' },
   { key: 'reports', label: 'Relatorios' },
   { key: 'settings', label: 'Configuracoes' },
 ]
@@ -250,6 +264,7 @@ const sectionTitles: Record<AdminSection, string> = {
   orders: 'Gestao de pedidos',
   customers: 'Gestao de clientes',
   categories: 'Gestao de categorias',
+  coupons: 'Gestao de cupons de desconto',
   reports: 'Relatorios administrativos',
   settings: 'Configuracoes da conta',
 }
@@ -304,6 +319,22 @@ export default function AdminPage() {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
   const [categoryForm, setCategoryForm] = useState({ name: '', slug: '', description: '' })
   const [categoryCreating, setCategoryCreating] = useState(false)
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
+  const [categorySaving, setCategorySaving] = useState(false)
+  const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [couponsLoading, setCouponsLoading] = useState(false)
+  const [couponForm, setCouponForm] = useState({
+    code: '',
+    discount_type: 'percentage' as 'percentage' | 'fixed',
+    discount_value: '',
+    min_purchase_value: '',
+    max_uses: '',
+    expires_at: '',
+    is_active: true,
+  })
+  const [couponCreating, setCouponCreating] = useState(false)
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null)
+  const [couponSaving, setCouponSaving] = useState(false)
   const [editProductActive, setEditProductActive] = useState(true)
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
@@ -556,6 +587,29 @@ export default function AdminPage() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    if (activeSection !== 'coupons') return
+    let active = true
+    setCouponsLoading(true)
+
+    fetch('/api/coupons', { credentials: 'include', cache: 'no-store' })
+      .then((r) => r.json())
+      .then((result: { data: Coupon[] | null; error: unknown }) => {
+        if (!active) return
+        if (result.data) setCoupons(result.data)
+      })
+      .catch(() => {
+        if (active) setPanelNotice('Falha ao carregar cupons')
+      })
+      .finally(() => {
+        if (active) setCouponsLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [activeSection])
+
   function toggleCategoryId(id: string) {
     setSelectedCategoryIds((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -571,34 +625,259 @@ export default function AdminPage() {
       .replace(/^-+|-+$/g, '')
   }
 
-  async function handleCreateCategory(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmitCategory(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (categoryCreating) return
-    setCategoryCreating(true)
+    if (editingCategoryId) {
+      if (categorySaving) return
+      setCategorySaving(true)
+      try {
+        const response = await fetch(`/api/categories/${editingCategoryId}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: categoryForm.name,
+            slug: categoryForm.slug || slugifyCategory(categoryForm.name),
+            description: categoryForm.description || undefined,
+          }),
+        })
+        const result = await response.json()
+        if (!response.ok || result.error) {
+          setPanelNotice(result.error?.message ?? 'Erro ao salvar alterações da categoria')
+          return
+        }
+        setCategories((prev) =>
+          prev
+            .map((cat) => (cat.id === editingCategoryId ? (result.data as Category) : cat))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        )
+        setCategoryForm({ name: '', slug: '', description: '' })
+        setEditingCategoryId(null)
+        setPanelNotice('Categoria atualizada com sucesso')
+      } catch {
+        setPanelNotice('Erro ao atualizar categoria')
+      } finally {
+        setCategorySaving(false)
+      }
+    } else {
+      if (categoryCreating) return
+      setCategoryCreating(true)
+      try {
+        const response = await fetch('/api/categories', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: categoryForm.name,
+            slug: categoryForm.slug || slugifyCategory(categoryForm.name),
+            description: categoryForm.description || undefined,
+          }),
+        })
+        const result = await response.json()
+        if (!response.ok || result.error) {
+          setPanelNotice(result.error?.message ?? 'Erro ao criar categoria')
+          return
+        }
+        setCategories((prev) => [...prev, result.data as Category].sort((a, b) => a.name.localeCompare(b.name)))
+        setCategoryForm({ name: '', slug: '', description: '' })
+        setPanelNotice('Categoria criada com sucesso')
+      } catch {
+        setPanelNotice('Erro ao criar categoria')
+      } finally {
+        setCategoryCreating(false)
+      }
+    }
+  }
+
+  async function handleDeleteCategory(id: string, name: string) {
+    if (
+      !window.confirm(
+        `Tem certeza que deseja excluir a categoria "${name}"? Esta ação removerá a categoria de todos os produtos associados.`
+      )
+    )
+      return
     try {
-      const response = await fetch('/api/categories', {
-        method: 'POST',
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'DELETE',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: categoryForm.name,
-          slug: categoryForm.slug || slugifyCategory(categoryForm.name),
-          description: categoryForm.description || undefined,
-        }),
       })
       const result = await response.json()
       if (!response.ok || result.error) {
-        setPanelNotice(result.error?.message ?? 'Erro ao criar categoria')
+        setPanelNotice(result.error?.message ?? 'Erro ao excluir categoria')
         return
       }
-      setCategories((prev) => [...prev, result.data as Category].sort((a, b) => a.name.localeCompare(b.name)))
-      setCategoryForm({ name: '', slug: '', description: '' })
-      setPanelNotice('Categoria criada com sucesso')
+      setCategories((prev) => prev.filter((cat) => cat.id !== id))
+      if (editingCategoryId === id) {
+        setEditingCategoryId(null)
+        setCategoryForm({ name: '', slug: '', description: '' })
+      }
+      setPanelNotice('Categoria excluída com sucesso')
     } catch {
-      setPanelNotice('Erro ao criar categoria')
-    } finally {
-      setCategoryCreating(false)
+      setPanelNotice('Erro ao excluir categoria')
     }
+  }
+
+  function handleStartEditCategory(cat: Category) {
+    setEditingCategoryId(cat.id)
+    setCategoryForm({
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description ?? '',
+    })
+  }
+
+  function handleCancelEditCategory() {
+    setEditingCategoryId(null)
+    setCategoryForm({ name: '', slug: '', description: '' })
+  }
+
+  async function handleSubmitCoupon(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const formattedPayload = {
+      code: couponForm.code.trim().toUpperCase(),
+      discount_type: couponForm.discount_type,
+      discount_value: parseFloat(couponForm.discount_value),
+      min_purchase_value: couponForm.min_purchase_value ? parseFloat(couponForm.min_purchase_value) : 0,
+      max_uses: couponForm.max_uses ? parseInt(couponForm.max_uses) : null,
+      expires_at: couponForm.expires_at ? new Date(couponForm.expires_at).toISOString() : null,
+      is_active: couponForm.is_active,
+    }
+
+    if (editingCouponId) {
+      if (couponSaving) return
+      setCouponSaving(true)
+      try {
+        const response = await fetch(`/api/coupons/${editingCouponId}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formattedPayload),
+        })
+        const result = await response.json()
+        if (!response.ok || result.error) {
+          setPanelNotice(result.error?.message ?? 'Erro ao salvar alterações do cupom')
+          return
+        }
+        setCoupons((prev) =>
+          prev
+            .map((c) => (c.id === editingCouponId ? (result.data as Coupon) : c))
+            .sort((a, b) => a.code.localeCompare(b.code))
+        )
+        setCouponForm({
+          code: '',
+          discount_type: 'percentage',
+          discount_value: '',
+          min_purchase_value: '',
+          max_uses: '',
+          expires_at: '',
+          is_active: true,
+        })
+        setEditingCouponId(null)
+        setPanelNotice('Cupom atualizado com sucesso')
+      } catch {
+        setPanelNotice('Erro ao atualizar cupom')
+      } finally {
+        setCouponSaving(false)
+      }
+    } else {
+      if (couponCreating) return
+      setCouponCreating(true)
+      try {
+        const response = await fetch('/api/coupons', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formattedPayload),
+        })
+        const result = await response.json()
+        if (!response.ok || result.error) {
+          setPanelNotice(result.error?.message ?? 'Erro ao criar cupom')
+          return
+        }
+        setCoupons((prev) => [...prev, result.data as Coupon].sort((a, b) => a.code.localeCompare(b.code)))
+        setCouponForm({
+          code: '',
+          discount_type: 'percentage',
+          discount_value: '',
+          min_purchase_value: '',
+          max_uses: '',
+          expires_at: '',
+          is_active: true,
+        })
+        setPanelNotice('Cupom criado com sucesso')
+      } catch {
+        setPanelNotice('Erro ao criar cupom')
+      } finally {
+        setCouponCreating(false)
+      }
+    }
+  }
+
+  async function handleDeleteCoupon(id: string, code: string) {
+    if (!window.confirm(`Tem certeza que deseja excluir o cupom "${code}"?`)) return
+    try {
+      const response = await fetch(`/api/coupons/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      const result = await response.json()
+      if (!response.ok || result.error) {
+        setPanelNotice(result.error?.message ?? 'Erro ao excluir cupom')
+        return
+      }
+      setCoupons((prev) => prev.filter((c) => c.id !== id))
+      if (editingCouponId === id) {
+        setEditingCouponId(null)
+        setCouponForm({
+          code: '',
+          discount_type: 'percentage',
+          discount_value: '',
+          min_purchase_value: '',
+          max_uses: '',
+          expires_at: '',
+          is_active: true,
+        })
+      }
+      setPanelNotice('Cupom excluído com sucesso')
+    } catch {
+      setPanelNotice('Erro ao excluir cupom')
+    }
+  }
+
+  function handleStartEditCoupon(c: Coupon) {
+    setEditingCouponId(c.id)
+    
+    let formattedDate = ''
+    if (c.expires_at) {
+      const d = new Date(c.expires_at)
+      const tzoffset = d.getTimezoneOffset() * 60000
+      const localISOTime = (new Date(d.getTime() - tzoffset)).toISOString().slice(0, 16)
+      formattedDate = localISOTime
+    }
+
+    setCouponForm({
+      code: c.code,
+      discount_type: c.discount_type,
+      discount_value: c.discount_value.toString(),
+      min_purchase_value: c.min_purchase_value.toString(),
+      max_uses: c.max_uses ? c.max_uses.toString() : '',
+      expires_at: formattedDate,
+      is_active: c.is_active,
+    })
+  }
+
+  function handleCancelEditCoupon() {
+    setEditingCouponId(null)
+    setCouponForm({
+      code: '',
+      discount_type: 'percentage',
+      discount_value: '',
+      min_purchase_value: '',
+      max_uses: '',
+      expires_at: '',
+      is_active: true,
+    })
   }
 
   const cards = useMemo<KpiCard[]>(() => {
@@ -2577,9 +2856,13 @@ export default function AdminPage() {
                 {activeSection === 'categories' ? (
                   <section className="grid gap-6 xl:grid-cols-[0.9fr_1.4fr]">
                     <article className="rounded-[28px] border border-neutral-100 bg-white p-6 shadow-soft">
-                      <h2 className="text-xl font-semibold text-neutral-900">Nova categoria</h2>
-                      <p className="mt-1 text-sm text-neutral-400">Crie categorias para organizar o catalogo.</p>
-                      <form className="mt-6 space-y-4" onSubmit={handleCreateCategory}>
+                      <h2 className="text-xl font-semibold text-neutral-900">
+                        {editingCategoryId ? 'Editar categoria' : 'Nova categoria'}
+                      </h2>
+                      <p className="mt-1 text-sm text-neutral-400">
+                        {editingCategoryId ? 'Edite os dados da categoria selecionada.' : 'Crie categorias para organizar o catalogo.'}
+                      </p>
+                      <form className="mt-6 space-y-4" onSubmit={handleSubmitCategory}>
                         <input
                           value={categoryForm.name}
                           onChange={(e) => {
@@ -2606,13 +2889,30 @@ export default function AdminPage() {
                           className="min-h-[80px] w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-primary-500"
                           placeholder="Descricao (opcional)"
                         />
-                        <button
-                          type="submit"
-                          className="btn-primary w-full disabled:opacity-60"
-                          disabled={categoryCreating}
-                        >
-                          {categoryCreating ? 'Criando...' : 'Criar categoria'}
-                        </button>
+                        <div className="flex gap-3">
+                          {editingCategoryId && (
+                            <button
+                              type="button"
+                              onClick={handleCancelEditCategory}
+                              className="btn-secondary w-full py-3 text-xs"
+                            >
+                              Cancelar
+                            </button>
+                          )}
+                          <button
+                            type="submit"
+                            className="btn-primary w-full disabled:opacity-60 py-3 text-xs"
+                            disabled={categoryCreating || categorySaving}
+                          >
+                            {editingCategoryId
+                              ? categorySaving
+                                ? 'Salvando...'
+                                : 'Salvar alterações'
+                              : categoryCreating
+                              ? 'Criando...'
+                              : 'Criar categoria'}
+                          </button>
+                        </div>
                       </form>
                     </article>
 
@@ -2626,19 +2926,48 @@ export default function AdminPage() {
                               <th className="px-4 py-3">Nome</th>
                               <th className="px-4 py-3">Slug</th>
                               <th className="px-4 py-3">Descricao</th>
+                              <th className="px-4 py-3 text-right">Ações</th>
                             </tr>
                           </thead>
                           <tbody>
                             {categories.map((cat) => (
-                              <tr key={cat.id} className="border-t border-neutral-100">
+                              <tr key={cat.id} className="border-t border-neutral-100 hover:bg-neutral-50/50 transition-colors">
                                 <td className="px-4 py-4 font-medium text-neutral-900">{cat.name}</td>
                                 <td className="px-4 py-4 font-mono text-sm text-neutral-500">{cat.slug}</td>
-                                <td className="px-4 py-4 text-sm text-neutral-500">{cat.description ?? '—'}</td>
+                                <td className="px-4 py-4 text-sm text-neutral-500 max-w-[200px] truncate" title={cat.description ?? ''}>
+                                  {cat.description ?? '—'}
+                                </td>
+                                <td className="px-4 py-4 text-right space-x-2 whitespace-nowrap">
+                                  <button
+                                    onClick={() => handleStartEditCategory(cat)}
+                                    className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                                      editingCategoryId === cat.id
+                                        ? 'bg-primary-50 text-primary-600 border border-primary-200'
+                                        : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700 border border-neutral-200'
+                                    }`}
+                                    title="Editar categoria"
+                                  >
+                                    <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                    </svg>
+                                    Editar
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                                    className="inline-flex items-center gap-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 px-2.5 py-1.5 text-xs font-semibold transition-all"
+                                    title="Excluir categoria"
+                                  >
+                                    <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                    Excluir
+                                  </button>
+                                </td>
                               </tr>
                             ))}
                             {categories.length === 0 ? (
                               <tr>
-                                <td colSpan={3} className="px-4 py-8 text-center text-sm text-neutral-400">
+                                <td colSpan={4} className="px-4 py-8 text-center text-sm text-neutral-400">
                                   Nenhuma categoria cadastrada ainda.
                                 </td>
                               </tr>
@@ -2646,6 +2975,223 @@ export default function AdminPage() {
                           </tbody>
                         </table>
                       </div>
+                    </article>
+                  </section>
+                ) : null}
+
+                {activeSection === 'coupons' ? (
+                  <section className="grid gap-6 xl:grid-cols-[0.9fr_1.4fr]">
+                    <article className="rounded-[28px] border border-neutral-100 bg-white p-6 shadow-soft">
+                      <h2 className="text-xl font-semibold text-neutral-900">
+                        {editingCouponId ? 'Editar cupom' : 'Novo cupom'}
+                      </h2>
+                      <p className="mt-1 text-sm text-neutral-400">
+                        {editingCouponId ? 'Edite os dados do cupom selecionado.' : 'Crie cupons de desconto para seus clientes.'}
+                      </p>
+                      <form className="mt-6 space-y-4" onSubmit={handleSubmitCoupon}>
+                        <div>
+                          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1">Código do Cupom</label>
+                          <input
+                            value={couponForm.code}
+                            onChange={(e) => setCouponForm((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                            className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-primary-500 font-bold uppercase tracking-wider"
+                            placeholder="EX: CASE20"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1">Tipo de Desconto</label>
+                          <select
+                            value={couponForm.discount_type}
+                            onChange={(e) => setCouponForm((prev) => ({ ...prev, discount_type: e.target.value as 'percentage' | 'fixed' }))}
+                            className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-primary-500"
+                            required
+                          >
+                            <option value="percentage">Porcentagem (%)</option>
+                            <option value="fixed">Valor Fixo (R$)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1">Valor do Desconto</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={couponForm.discount_value}
+                            onChange={(e) => setCouponForm((prev) => ({ ...prev, discount_value: e.target.value }))}
+                            className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-primary-500"
+                            placeholder={couponForm.discount_type === 'percentage' ? 'Ex: 15' : 'Ex: 20.00'}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1">Valor Mínimo de Compra (R$)</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={couponForm.min_purchase_value}
+                            onChange={(e) => setCouponForm((prev) => ({ ...prev, min_purchase_value: e.target.value }))}
+                            className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-primary-500"
+                            placeholder="Ex: 100.00 (opcional)"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1">Limite de Usos (Total)</label>
+                          <input
+                            type="number"
+                            value={couponForm.max_uses}
+                            onChange={(e) => setCouponForm((prev) => ({ ...prev, max_uses: e.target.value }))}
+                            className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-primary-500"
+                            placeholder="Sem limite (opcional)"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1">Data de Expiração</label>
+                          <input
+                            type="datetime-local"
+                            value={couponForm.expires_at}
+                            onChange={(e) => setCouponForm((prev) => ({ ...prev, expires_at: e.target.value }))}
+                            className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none transition focus:border-primary-500"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2">
+                          <input
+                            type="checkbox"
+                            id="coupon_is_active"
+                            checked={couponForm.is_active}
+                            onChange={(e) => setCouponForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+                            className="h-4 w-4 rounded border-neutral-300 text-primary-500 focus:ring-primary-500"
+                          />
+                          <label htmlFor="coupon_is_active" className="text-sm font-semibold text-neutral-700">Ativo / Permitir uso</label>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                          {editingCouponId && (
+                            <button
+                              type="button"
+                              onClick={handleCancelEditCoupon}
+                              className="btn-secondary w-full py-3 text-xs"
+                            >
+                              Cancelar
+                            </button>
+                          )}
+                          <button
+                            type="submit"
+                            className="btn-primary w-full disabled:opacity-60 py-3 text-xs"
+                            disabled={couponCreating || couponSaving}
+                          >
+                            {editingCouponId
+                              ? couponSaving
+                                ? 'Salvando...'
+                                : 'Salvar alterações'
+                              : couponCreating
+                              ? 'Criando...'
+                              : 'Criar cupom'}
+                          </button>
+                        </div>
+                      </form>
+                    </article>
+
+                    <article className="rounded-[28px] border border-neutral-100 bg-white p-6 shadow-soft">
+                      <h2 className="text-xl font-semibold text-neutral-900">Cupons Cadastrados</h2>
+                      <p className="mt-1 text-sm text-neutral-400">{coupons.length} cupo{coupons.length !== 1 ? 'ns' : 'm'} cadastrado{coupons.length !== 1 ? 's' : ''}.</p>
+                      
+                      {couponsLoading ? (
+                        <div className="flex justify-center py-12">
+                          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
+                        </div>
+                      ) : (
+                        <div className="mt-6 overflow-x-auto">
+                          <table className="min-w-full text-left">
+                            <thead>
+                              <tr className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+                                <th className="px-4 py-3">Código</th>
+                                <th className="px-4 py-3">Desconto</th>
+                                <th className="px-4 py-3">Compra Mín.</th>
+                                <th className="px-4 py-3">Usos</th>
+                                <th className="px-4 py-3">Validade</th>
+                                <th className="px-4 py-3">Status</th>
+                                <th className="px-4 py-3 text-right">Ações</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {coupons.map((c) => {
+                                const isExpired = c.expires_at && new Date(c.expires_at) < new Date()
+                                return (
+                                  <tr key={c.id} className="border-t border-neutral-100 hover:bg-neutral-50/50 transition-colors">
+                                    <td className="px-4 py-4 font-bold text-neutral-900 tracking-wide">{c.code}</td>
+                                    <td className="px-4 py-4 font-semibold text-neutral-900">
+                                      {c.discount_type === 'percentage' ? `${c.discount_value}%` : formatCurrency(c.discount_value)}
+                                    </td>
+                                    <td className="px-4 py-4 text-sm text-neutral-500">
+                                      {c.min_purchase_value > 0 ? formatCurrency(c.min_purchase_value) : 'Sem mín.'}
+                                    </td>
+                                    <td className="px-4 py-4 text-sm text-neutral-500">
+                                      {c.used_count} / {c.max_uses ?? '∞'}
+                                    </td>
+                                    <td className="px-4 py-4 text-sm text-neutral-500">
+                                      {c.expires_at ? (
+                                        <span className={isExpired ? 'text-rose-500 font-medium' : ''}>
+                                          {formatDateTime(c.expires_at)}
+                                        </span>
+                                      ) : (
+                                        'Sem expiração'
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-4 text-sm">
+                                      {c.is_active && !isExpired ? (
+                                        <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">Ativo</span>
+                                      ) : (
+                                        <span className="inline-block rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                                          {isExpired ? 'Expirado' : 'Inativo'}
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-4 text-right space-x-2 whitespace-nowrap">
+                                      <button
+                                        onClick={() => handleStartEditCoupon(c)}
+                                        className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                                          editingCouponId === c.id
+                                            ? 'bg-primary-50 text-primary-600 border border-primary-200'
+                                            : 'bg-neutral-50 hover:bg-neutral-100 text-neutral-700 border border-neutral-200'
+                                        }`}
+                                        title="Editar cupom"
+                                      >
+                                        <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                        Editar
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteCoupon(c.id, c.code)}
+                                        className="inline-flex items-center gap-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 px-2.5 py-1.5 text-xs font-semibold transition-all"
+                                        title="Excluir cupom"
+                                      >
+                                        <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        </svg>
+                                        Excluir
+                                      </button>
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                              {coupons.length === 0 ? (
+                                <tr>
+                                  <td colSpan={7} className="px-4 py-8 text-center text-sm text-neutral-400">
+                                    Nenhum cupom cadastrado ainda.
+                                  </td>
+                                </tr>
+                              ) : null}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     </article>
                   </section>
                 ) : null}
