@@ -33,7 +33,7 @@ export default function Hero() {
 
             {/* Subtitle */}
             <p className="mt-5 max-w-[480px] text-[0.95rem] leading-relaxed text-white/85 sm:mt-6 sm:text-base sm:leading-relaxed">
-              Descubra fragrâncias exclusivas que revelam sua personalidade única. Perfumes importados com qualidade garantida.
+              Explore nossa coleção de perfumes importados, perfumes árabes, Brand Collection e linha Ciclo. Fragrâncias originais, marcantes e perfeitas para todos os momentos.
             </p>
 
             {/* Buttons Row */}
