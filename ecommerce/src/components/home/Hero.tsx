@@ -91,7 +91,7 @@ export default function Hero() {
           <div className="relative w-full max-w-[320px] sm:max-w-[380px] mx-auto lg:hidden mt-8">
             <div className="relative aspect-[0.68] w-full overflow-hidden rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.25)]">
               <Image
-                src="/images/hero.jpeg"
+                src="/images/MAIANE.jpeg"
                 alt="Modelo aplicando perfume"
                 fill
                 priority
@@ -108,7 +108,7 @@ export default function Hero() {
       <div className="absolute right-0 bottom-0 top-0 hidden lg:block lg:w-[40%] xl:w-[44%] max-w-[650px] z-0 pointer-events-none">
         <div className="relative h-full w-full">
           <Image
-            src="/images/hero.jpeg"
+            src="/images/MAIANE.jpeg"
             alt="Modelo aplicando perfume"
             fill
             priority
